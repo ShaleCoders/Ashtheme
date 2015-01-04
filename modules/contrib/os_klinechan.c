@@ -78,13 +78,13 @@ static void klinechan_check_join(hook_channel_joinpart_t *hdata)
 		}
 		else
 		{
-			snprintf(reason, sizeof reason, "Joining %s",
+			snprintf(reason, sizeof reason, "You are not permitted to join %s, Tempoary kline for 30minutes set",
 					cu->chan->name);
 			slog(LG_INFO, "klinechan_check_join(): klining \2*@%s\2 (user \2%s!%s@%s\2 joined \2%s\2)",
 					khost, cu->user->nick,
 					cu->user->user, cu->user->host,
 					cu->chan->name);
-			kline_sts("*", "*", khost, 86400, reason);
+			kline_sts("*", "*", khost, 1800, reason);
 		}
 	}
 }
