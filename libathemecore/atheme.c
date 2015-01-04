@@ -1,6 +1,6 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
- * atheme.c: Initialization and startup of the services system
+ * ashtheme-services: A collection of minimalist IRC services   
+ * ashtheme.c: Initialization and startup of the services system
  *
  * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)           
  *
@@ -67,7 +67,7 @@ void (*db_load) (const char *name) = NULL;
 /* *INDENT-OFF* */
 static void print_help(void)
 {
-	printf("usage: atheme [-dhnvr] [-c conf] [-l logfile] [-p pidfile]\n\n"
+	printf("usage: ashtheme [-dhnvr] [-c conf] [-l logfile] [-p pidfile]\n\n"
 	       "-c <file>    Specify the config file\n"
 	       "-d           Start in debugging mode\n"
 	       "-h           Print this message and exit\n"
@@ -84,7 +84,7 @@ static void print_version(void)
 {
 	int i;
 
-	printf("Atheme IRC Services (%s), build-id %s\n", PACKAGE_STRING, revision);
+	printf("ashtheme IRC Services (%s), build-id %s\n", PACKAGE_STRING, revision);
 
 	for (i = 0; infotext[i] != NULL; i++)
 		printf("%s\n", infotext[i]);
@@ -170,7 +170,7 @@ static bool detach_console(int *daemonize_pipe)
 #endif
 }
 
-void atheme_bootstrap(void)
+void ashtheme_bootstrap(void)
 {
 #ifdef HAVE_GETRLIMIT
 	struct rlimit rlim;
@@ -207,7 +207,7 @@ void atheme_bootstrap(void)
 	curr_uplink = NULL;
 }
 
-void atheme_init(char *execname, char *log_p)
+void ashtheme_init(char *execname, char *log_p)
 {
 	me.execname = execname;
 	me.kline_id = 0;
@@ -228,7 +228,7 @@ void atheme_init(char *execname, char *log_p)
 	mowgli_log_set_cb(process_mowgli_log);
 }
 
-void atheme_setup(void)
+void ashtheme_setup(void)
 {
 #if HAVE_UMASK
 	/* file creation mask */
@@ -259,7 +259,7 @@ void atheme_setup(void)
 	common_ctcp_init();
 }
 
-int atheme_main(int argc, char *argv[])
+int ashtheme_main(int argc, char *argv[])
 {
 	int daemonize_pipe[2];
 	bool have_conf = false;
@@ -268,13 +268,13 @@ int atheme_main(int argc, char *argv[])
 	char buf[32];
 	int pid, r;
 	FILE *pid_file;
-	const char *pidfilename = RUNDIR "/atheme.pid";
+	const char *pidfilename = RUNDIR "/ashtheme.pid";
 	char *log_p = NULL;
 	mowgli_getopt_option_t long_opts[] = {
 		{ NULL, 0, NULL, 0, 0 },
 	};
 
-	atheme_bootstrap();
+	ashtheme_bootstrap();
 
 	/* do command-line options */
 	while ((r = mowgli_getopt_long(argc, argv, "c:dhrl:np:D:v", long_opts, NULL)) != -1)
@@ -314,17 +314,17 @@ int atheme_main(int argc, char *argv[])
 			  exit(EXIT_SUCCESS);
 			  break;
 		  default:
-			  printf("usage: atheme [-dhnvr] [-c conf] [-l logfile] [-p pidfile]\n");
+			  printf("usage: ashtheme [-dhnvr] [-c conf] [-l logfile] [-p pidfile]\n");
 			  exit(EXIT_FAILURE);
 			  break;
 		}
 	}
 
 	if (!have_conf)
-		config_file = sstrdup(SYSCONFDIR "/atheme.conf");
+		config_file = sstrdup(SYSCONFDIR "/ashtheme.conf");
 
 	if (!have_log)
-		log_p = sstrdup(LOGDIR "/atheme.log");
+		log_p = sstrdup(LOGDIR "/ashtheme.log");
 
 	if (!have_datadir)
 		datadir = sstrdup(DATADIR);
@@ -333,7 +333,7 @@ int atheme_main(int argc, char *argv[])
 
 	runflags |= RF_STARTING;
 
-	atheme_init(argv[0], log_p);
+	ashtheme_init(argv[0], log_p);
 
 	slog(LG_INFO, "%s is starting up...", PACKAGE_STRING);
 
@@ -347,7 +347,7 @@ int atheme_main(int argc, char *argv[])
 
 			if (!kill(pid, 0))
 			{
-				fprintf(stderr, "atheme: daemon is already running\n");
+				fprintf(stderr, "ashtheme: daemon is already running\n");
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -359,7 +359,7 @@ int atheme_main(int argc, char *argv[])
 	if (!(runflags & RF_LIVE))
 		daemonize(daemonize_pipe);
 
-	atheme_setup();
+	ashtheme_setup();
 
 	conf_init();
 	if (!conf_parse(config_file))
@@ -379,7 +379,7 @@ int atheme_main(int argc, char *argv[])
 
 	if (!backend_loaded && authservice_loaded)
 	{
-		slog(LG_ERROR, "atheme: no backend modules loaded, see your configuration file.");
+		slog(LG_ERROR, "ashtheme: no backend modules loaded, see your configuration file.");
 		exit(EXIT_FAILURE);
 	}
 
@@ -391,7 +391,7 @@ int atheme_main(int argc, char *argv[])
 		db_load(NULL);
 	else if (backend_loaded)
 	{
-		slog(LG_ERROR, "atheme: backend module does not provide db_load()!");
+		slog(LG_ERROR, "ashtheme: backend module does not provide db_load()!");
 		exit(EXIT_FAILURE);
 	}
 	db_check();
@@ -405,7 +405,7 @@ int atheme_main(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf(stderr, "atheme: unable to write pid file\n");
+		fprintf(stderr, "ashtheme: unable to write pid file\n");
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -469,7 +469,7 @@ int atheme_main(int argc, char *argv[])
 		slog(LG_INFO, "main(): restarting");
 
 #ifdef HAVE_EXECVE
-		execv(BINDIR "/atheme-services", argv);
+		execv(BINDIR "/ashtheme-services", argv);
 #endif
 	}
 

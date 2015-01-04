@@ -1,4 +1,4 @@
-dnl Copyright (c) 2005 Atheme Development Group
+dnl Copyright (c) 2015 ShaleCoders Development Group
 dnl Rights to this code are documented in doc/LICENSE.
 dnl
 dnl This file is the autoconf stub.
@@ -7,12 +7,12 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
 
-AC_INIT(atheme, 7.1.0, bugs@atheme.org)
+AC_INIT(ashtheme, 1.0.1-beta, shalecoders@gmail.com)
 
 AC_CONFIG_AUX_DIR(autoconf)
 
 AC_CONFIG_HEADER(include/sysconf.h)
-AC_PREFIX_DEFAULT(~/atheme)
+AC_PREFIX_DEFAULT(~/ashtheme)
 
 dnl Buildsys module stuff
 BUILDSYS_INIT
@@ -141,7 +141,7 @@ AS_IF([test "x$with_perl" != "xno"],
       PERL_LIBS=`perl -MExtUtils::Embed -e ldopts`
   fi
 
-  dnl if Perl is built with threading support, we need to link atheme against libpthread
+  dnl if Perl is built with threading support, we need to link ashtheme against libpthread
   if test -n "`echo "$PERL_LIBS" | grep pthread`"; then
      LIBS="$LIBS -lpthread"
   fi
@@ -173,12 +173,12 @@ AC_HELP_STRING([--enable-fhs-paths],[ Use more FHS-like pathnames (for packagers
   case "$enableval" in
   yes)
     FHSPATHS="yes"
-    DOCDIR='${datadir}/doc/atheme'
-    MODDIR='${libdir}/atheme'
-    SHAREDIR='${datadir}/atheme'
-    LOGDIR='${localstatedir}/log/atheme'
-    DATADIR='${localstatedir}/lib/atheme'
-    RUNDIR='${localstatedir}/run/atheme'
+    DOCDIR='${datadir}/doc/ashtheme'
+    MODDIR='${libdir}/ashtheme'
+    SHAREDIR='${datadir}/ashtheme'
+    LOGDIR='${localstatedir}/log/ashtheme'
+    DATADIR='${localstatedir}/lib/ashtheme'
+    RUNDIR='${localstatedir}/run/ashtheme'
     ;;
   no)
     FHSPATHS="no"
@@ -279,8 +279,8 @@ case "$host" in
         ;;
 esac
 
-ATHEME_C_GCC_TRY_FLAGS([-std=gnu99], atheme_cv_c_gcc_std_gnu99)
-ATHEME_C_GCC_TRY_FLAGS([-Werror-implicit-function-declaration], atheme_cv_c_gcc_w_error_implicit_function_declaration)
+ATHEME_C_GCC_TRY_FLAGS([-std=gnu99], ashtheme_cv_c_gcc_std_gnu99)
+ATHEME_C_GCC_TRY_FLAGS([-Werror-implicit-function-declaration], ashtheme_cv_c_gcc_w_error_implicit_function_declaration)
 
 AC_ARG_ENABLE([warnings],
 	[AS_HELP_STRING([--enable-warnings],[ Enable compiler warnings])],
@@ -288,33 +288,33 @@ AC_ARG_ENABLE([warnings],
 AS_IF([test "x$enable_warnings" = "xyes"],
 [
 dnl See what warnings we can get away with
-ATHEME_C_GCC_TRY_FLAGS([-Wall], atheme_cv_c_gcc_w_all)
-ATHEME_C_GCC_TRY_FLAGS([-Wpointer-arith], atheme_cv_c_gcc_w_pointer_arith)
-ATHEME_C_GCC_TRY_FLAGS([-Wimplicit -Wnested-externs], atheme_cv_c_gcc_w_implicit)
-ATHEME_C_GCC_TRY_FLAGS([-Wcast-align], atheme_cv_c_gcc_w_cast_align)
-ATHEME_C_GCC_TRY_FLAGS([-Wcast-qual], atheme_cv_c_gcc_w_cast_qual)
-ATHEME_C_GCC_TRY_FLAGS([-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations], atheme_cv_c_gcc_prototypes)
-ATHEME_C_GCC_TRY_FLAGS([-Wparenthesis], atheme_cv_c_gcc_parenthesis)
-ATHEME_C_GCC_TRY_FLAGS([-W -Wno-unused], atheme_cv_c_gcc_w)
-ATHEME_C_GCC_TRY_FLAGS([-Wextra], atheme_cv_c_gcc_w_extra)
-ATHEME_C_GCC_TRY_FLAGS([-Wshadow], atheme_cv_c_gcc_w_shadow)
-ATHEME_C_GCC_TRY_FLAGS([-Wundef], atheme_cv_c_gcc_w_undef)
-ATHEME_C_GCC_TRY_FLAGS([-Wpacked], atheme_cv_c_gcc_w_packed)
-ATHEME_C_GCC_TRY_FLAGS([-Wnested-externs], atheme_cv_c_gcc_w_nested_externs)
-ATHEME_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunused-variable], atheme_cv_c_gcc_w_unused)
-ATHEME_C_GCC_TRY_FLAGS([-Wredundant-decls], atheme_cv_c_gcc_w_redundant_decls)
-ATHEME_C_GCC_TRY_FLAGS([-Wfloat-equal], atheme_cv_c_gcc_w_float_equal)
+ATHEME_C_GCC_TRY_FLAGS([-Wall], ashtheme_cv_c_gcc_w_all)
+ATHEME_C_GCC_TRY_FLAGS([-Wpointer-arith], ashtheme_cv_c_gcc_w_pointer_arith)
+ATHEME_C_GCC_TRY_FLAGS([-Wimplicit -Wnested-externs], ashtheme_cv_c_gcc_w_implicit)
+ATHEME_C_GCC_TRY_FLAGS([-Wcast-align], ashtheme_cv_c_gcc_w_cast_align)
+ATHEME_C_GCC_TRY_FLAGS([-Wcast-qual], ashtheme_cv_c_gcc_w_cast_qual)
+ATHEME_C_GCC_TRY_FLAGS([-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations], ashtheme_cv_c_gcc_prototypes)
+ATHEME_C_GCC_TRY_FLAGS([-Wparenthesis], ashtheme_cv_c_gcc_parenthesis)
+ATHEME_C_GCC_TRY_FLAGS([-W -Wno-unused], ashtheme_cv_c_gcc_w)
+ATHEME_C_GCC_TRY_FLAGS([-Wextra], ashtheme_cv_c_gcc_w_extra)
+ATHEME_C_GCC_TRY_FLAGS([-Wshadow], ashtheme_cv_c_gcc_w_shadow)
+ATHEME_C_GCC_TRY_FLAGS([-Wundef], ashtheme_cv_c_gcc_w_undef)
+ATHEME_C_GCC_TRY_FLAGS([-Wpacked], ashtheme_cv_c_gcc_w_packed)
+ATHEME_C_GCC_TRY_FLAGS([-Wnested-externs], ashtheme_cv_c_gcc_w_nested_externs)
+ATHEME_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunused-variable], ashtheme_cv_c_gcc_w_unused)
+ATHEME_C_GCC_TRY_FLAGS([-Wredundant-decls], ashtheme_cv_c_gcc_w_redundant_decls)
+ATHEME_C_GCC_TRY_FLAGS([-Wfloat-equal], ashtheme_cv_c_gcc_w_float_equal)
 dnl Added -fno-builtin-strftime to squelch a few (pointless) warnings from the time_format patch.
-ATHEME_C_GCC_TRY_FLAGS([-Wformat=2 -fno-builtin-strftime], atheme_cv_c_gcc_w_format)
-ATHEME_C_GCC_TRY_FLAGS([-Wdisabled-optimization], atheme_cv_c_gcc_w_disabled_optimization)
-dnl ATHEME_C_GCC_TRY_FLAGS([-pedantic], atheme_cv_c_gcc_pedantic)
+ATHEME_C_GCC_TRY_FLAGS([-Wformat=2 -fno-builtin-strftime], ashtheme_cv_c_gcc_w_format)
+ATHEME_C_GCC_TRY_FLAGS([-Wdisabled-optimization], ashtheme_cv_c_gcc_w_disabled_optimization)
+dnl ATHEME_C_GCC_TRY_FLAGS([-pedantic], ashtheme_cv_c_gcc_pedantic)
 
-ATHEME_C_GCC_TRY_FLAGS([-Wunreachable-code], atheme_cv_c_gcc_w_unreachable_code)
+ATHEME_C_GCC_TRY_FLAGS([-Wunreachable-code], ashtheme_cv_c_gcc_w_unreachable_code)
 
 dnl Maintainer flags.
-dnl ATHEME_C_GCC_TRY_FLAGS([-Wconversion], atheme_cv_c_gcc_w_conversion)
-dnl ATHEME_C_GCC_TRY_FLAGS([-Wwrite-strings], atheme_cv_c_gcc_w_strings)
-dnl ATHEME_C_GCC_TRY_FLAGS([-Werror], atheme_cv_c_gcc_w_error)
+dnl ATHEME_C_GCC_TRY_FLAGS([-Wconversion], ashtheme_cv_c_gcc_w_conversion)
+dnl ATHEME_C_GCC_TRY_FLAGS([-Wwrite-strings], ashtheme_cv_c_gcc_w_strings)
+dnl ATHEME_C_GCC_TRY_FLAGS([-Werror], ashtheme_cv_c_gcc_w_error)
 ])
 
 AC_ARG_ENABLE([propolice],
@@ -322,10 +322,10 @@ AC_ARG_ENABLE([propolice],
 	[], [enable_propolice=no])
 AS_IF([test "x$enable_propolice" = "xyes"],
 [
-ATHEME_C_GCC_TRY_FLAGS([-fno-stack-protector-all], atheme_cv_nspa)
-ATHEME_C_GCC_TRY_FLAGS([-fno-pie], atheme_cv_npie)
-ATHEME_C_GCC_TRY_FLAGS([-nonow], atheme_cv_nonow)
-ATHEME_C_GCC_TRY_FLAGS([-norelro], atheme_cv_no_relro)
+ATHEME_C_GCC_TRY_FLAGS([-fno-stack-protector-all], ashtheme_cv_nspa)
+ATHEME_C_GCC_TRY_FLAGS([-fno-pie], ashtheme_cv_npie)
+ATHEME_C_GCC_TRY_FLAGS([-nonow], ashtheme_cv_nonow)
+ATHEME_C_GCC_TRY_FLAGS([-norelro], ashtheme_cv_no_relro)
 ])
 
 AC_ARG_ENABLE([profile],
@@ -333,7 +333,7 @@ AC_ARG_ENABLE([profile],
 	[], [enable_profile=no])
 AS_IF([test "x$enable_profile" = "xyes"],
 [
-ATHEME_C_GCC_TRY_FLAGS([-pg], atheme_cv_pg)
+ATHEME_C_GCC_TRY_FLAGS([-pg], ashtheme_cv_pg)
 ac_save_LDFLAGS="${LDFLAGS} -pg"
 LDFLAGS=${ac_save_LDFLAGS}
 ])
@@ -423,14 +423,14 @@ BUILDSYS_TOUCH_DEPS
 AC_OUTPUT([
 	buildsys.mk
 	extra.mk
-	atheme-services.pc
+	ashtheme-services.pc
 ])
 
 d=`eval echo ${MODDIR}`
 d=`eval echo $d`
 echo "
 Configuration:
-	Atheme version       : ${PACKAGE_VERSION}
+	Ashtheme version       : ${PACKAGE_VERSION}
 	Installation prefix  : ${prefix}
 	Module root directory: `eval echo $d`
 	Config directory     : ${sysconfdir}
@@ -448,4 +448,4 @@ Configuration:
 	CFLAGS               : ${CFLAGS}
 	Internationalization : ${USE_NLS}
 
-Type make to build Atheme, and make install to install it."
+Type make to build ashtheme, and make install to install it."

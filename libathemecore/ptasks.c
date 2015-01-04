@@ -1,5 +1,5 @@
 /*
- * atheme-services: A collection of minimalist IRC services
+ * ashtheme-services: A collection of minimalist IRC services
  * ptasks.c: Implementation of common protocol tasks.
  *
  * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)
@@ -65,7 +65,7 @@ void handle_admin(user_t *u)
 
 	numeric_sts(me.me, 256, u, ":Administrative info about %s", me.name);
 	numeric_sts(me.me, 257, u, ":%s", me.adminname);
-	numeric_sts(me.me, 258, u, ":Atheme IRC Services (%s)", PACKAGE_STRING);
+	numeric_sts(me.me, 258, u, ":ashtheme IRC Services (%s)", PACKAGE_STRING);
 	numeric_sts(me.me, 259, u, ":<%s>", me.adminemail);
 }
 
@@ -403,7 +403,7 @@ void handle_motd(user_t *u)
 	if (floodcheck(u, NULL))
 		return;
 
-	f = fopen(SYSCONFDIR "/atheme.motd", "r");
+	f = fopen(SYSCONFDIR "/ashtheme.motd", "r");
 	if (!f)
 	{
 		numeric_sts(me.me, 422, u, ":The MOTD file is unavailable.");
