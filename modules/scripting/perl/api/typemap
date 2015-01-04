@@ -1,0 +1,127 @@
+TYPEMAP
+Atheme_Sourceinfo		T_PTROBJ_SPECIAL
+Atheme_Service			T_PTROBJ_SPECIAL
+Atheme_User			T_PTROBJ_SPECIAL
+Atheme_Object			T_PTROBJ_SPECIAL
+Atheme_Entity			T_PTROBJ_SPECIAL
+Atheme_Account			T_PTROBJ_SPECIAL
+Atheme_Channel			T_PTROBJ_SPECIAL
+Atheme_ChanUser			T_PTROBJ_SPECIAL
+Atheme_ChannelRegistration	T_PTROBJ_SPECIAL
+Atheme_ChanAcs			T_PTROBJ_SPECIAL
+Atheme_NickRegistration		T_PTROBJ_SPECIAL
+Atheme_Server			T_PTROBJ_SPECIAL
+
+Atheme_Command			T_PTROBJ_PERLOWNED
+
+Atheme_Internal_List		T_PTROBJ_TIEDARRAY
+Atheme_Object_MetadataHash	T_PTROBJ_TIEDHASH
+
+INPUT
+T_PTROBJ_SPECIAL
+	do
+	{
+		SV *arg = $arg;
+		SV *ref = SvRV(arg);
+		const char * type = \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\";
+		if ( sv_isobject(arg) && (SvTYPE(SvRV(arg)) == SVt_PVMG) &&
+		    sv_derived_from(arg, type)) {
+			IV tmp = SvIV(ref);
+			if (tmp == invalid_object_pointer)
+				croak(\"$var is an invalid object reference\");
+			$var = INT2PTR($type, tmp);
+		}
+		else
+			croak(\"$var is not of type ${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\");
+	} while(0)
+
+T_PTROBJ_PERLOWNED
+	do
+	{
+		SV *arg = $arg;
+		SV *ref = SvRV(arg);
+		const char * type = \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\";
+		if ( sv_isobject(arg) && (SvTYPE(SvRV(arg)) == SVt_PVMG) &&
+		    sv_derived_from(arg, type)) {
+			IV tmp = SvIV(ref);
+			if (tmp == invalid_object_pointer)
+				croak(\"$var is not a valid object reference\");
+			$var = INT2PTR($type, tmp);
+		}
+		else
+			croak(\"$var is not of type ${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\");
+	} while(0)
+
+T_PTROBJ_TIEDARRAY
+	do
+	{
+		SV *arg = $arg;
+		SV *ref = SvRV(arg);
+		const char * type = \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\";
+		if ( sv_isobject(arg) && (SvTYPE(SvRV(arg)) == SVt_PVMG) &&
+		    sv_derived_from(arg, type)) {
+			IV tmp = SvIV(ref);
+			if (tmp == invalid_object_pointer)
+				croak(\"$var is not a valid object reference\");
+			$var = INT2PTR($type, tmp);
+		}
+		else
+			croak(\"$var is not of type ${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\");
+	} while(0)
+
+T_PTROBJ_TIEDHASH
+	do
+	{
+		SV *arg = $arg;
+		SV *ref = SvRV(arg);
+		const char * type = \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\";
+		if ( sv_isobject(arg) && (SvTYPE(SvRV(arg)) == SVt_PVMG) &&
+		    sv_derived_from(arg, type)) {
+			IV tmp = SvIV(ref);
+			if (tmp == invalid_object_pointer)
+				croak(\"$var is not a valid object reference\");
+			$var = INT2PTR($type, tmp);
+		}
+		else
+			croak(\"$var is not of type ${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\");
+	} while(0)
+
+OUTPUT
+T_PTROBJ_SPECIAL
+	do {
+		if ($var == NULL)
+			XSRETURN_UNDEF;
+		sv_setref_pv($arg, \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\", (void*)$var);
+		register_object_reference($arg);
+	} while(0);
+
+T_PTROBJ_PERLOWNED
+	do {
+		if ($var == NULL)
+			XSRETURN_UNDEF;
+		sv_setref_pv($arg, \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\", (void*)$var);
+	} while(0);
+
+T_PTROBJ_TIEDARRAY
+	do {
+		if ($var == NULL)
+			XSRETURN_UNDEF;
+		AV *array = newAV();
+		SV *tie = newSV(0);
+		sv_setref_pv(tie, \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\", (void*)$var);
+		hv_magic(array, tie, PERL_MAGIC_tied);
+		$arg = newRV_noinc((SV*)array);
+		register_object_reference(tie);
+	} while(0);
+
+T_PTROBJ_TIEDHASH
+	do {
+		if ($var == NULL)
+			XSRETURN_UNDEF;
+		HV *hash = newHV();
+		SV *tie = newSV(0);
+		sv_setref_pv(tie, \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\", (void*)$var);
+		hv_magic(hash, tie, PERL_MAGIC_tied);
+		$arg = newRV_noinc((SV*)hash);
+		register_object_reference(tie);
+	} while(0);

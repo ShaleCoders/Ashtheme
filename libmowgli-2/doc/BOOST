@@ -1,0 +1,12 @@
+This is a list of alphabetical libraries provided by Boost and their
+equivalent in libmowgli:
+
+   dynamic_bitset   -> mowgli_bitvector
+   pool             -> mowgli_memorypool
+   smart_ptr        -> mowgli_object
+   asio             -> mowgli_eventloop, mowgli_vio
+
+Many boost libraries that are applicable to C have not yet been
+implemented. You can visit http://www.boost.org/libs/libraries.htm
+for a full list of libs.
+

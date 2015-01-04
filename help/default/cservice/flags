@@ -1,0 +1,115 @@
+Help for FLAGS:
+
+The FLAGS command allows for the granting/removal of channel
+privileges on a more specific, non-generalized level. It
+supports nicknames, groups and hostmasks as targets.
+
+When only the channel argument is given, a listing of
+permissions granted to users will be displayed.
+
+Syntax: FLAGS <#channel>
+
+Otherwise, an access entry is modified. A modification may be
+specified by a template name (changes the access to the
+template) or a flags change (starts with + or -). See the
+TEMPLATE help entry for more information about templates.
+
+#if !halfops
+If you are not a founder, you may only manipulate flags you
+have yourself, and may not edit users that have flags you
+don't have. For this purpose, +v grants the ability to grant
++V, +o grants the ability to grant +O, and +r grants the
+ability to grant +b.
+#else
+If you are not a founder, you may only manipulate flags you
+have yourself, and may not edit users that have flags you
+don't have. For this purpose, +v grants the ability to grant
++V, +h grants the ability to grant +H, +o grants the ability
+to grant +O, and +r grants the ability to grant +b.
+#endif
+
+#if module chanserv/set_limitflags
+If the LIMITFLAGS option is set for the channel, this is
+restricted further, see help for SET LIMITFLAGS.
+
+#endif
+
+#if module exttarget/main
+As of Atheme 7.0, there are now extended entity targets
+which allow you to match chanacs against a situation instead
+of against a nickname, hostmask or group.
+
+Available exttargets are:
+#endif
+#if module exttarget/oper
+$oper - Any user who is an oper (user mode +o).
+#endif
+#if module exttarget/registered
+$registered - Any user who is identified to services.
+#endif
+#if module exttarget/channel
+$channel:#channel - Any user who is the member of the given channel.
+#endif
+#if module exttarget/chanacs
+$chanacs:#channel - Any user with channel access in the given channel
+                      (including hostmasks).
+#endif
+
+If you do not have +f you may still remove your own access
+with -*.
+
+Syntax: FLAGS <#channel> [nickname|hostmask|group template]
+Syntax: FLAGS <#channel> [nickname|hostmask|group flag_changes]
+
+Permissions:
+    +v - Enables use of the voice/devoice commands.
+    +V - Enables automatic voice.
+#if halfops
+    +h - Enables use of the halfop/dehalfop commands.
+    +H - Enables automatic halfop.
+#endif
+    +o - Enables use of the op/deop commands.
+    +O - Enables automatic op.
+#if protect
+    +a - Enables use of the protect/deprotect commands.
+#endif
+#if owner
+    +q - Enables use of the owner/deowner commands.
+#endif
+    +s - Enables use of the set command.
+    +i - Enables use of the invite and getkey commands.
+#if module chanserv/kick
+    +r - Enables use of the kick, kickban, ban and unban commands.
+#else
+#if !module chanserv/unban_self
+    +r - Enables use of the ban and unban commands.
+#else
+    +r - Enables use of the unban command.
+#endif
+#endif
+    +R - Enables use of the recover, sync and clear commands.
+    +f - Enables modification of channel access lists.
+    +t - Enables use of the topic and topicappend commands.
+    +A - Enables viewing of channel access lists.
+#if module chanserv/successor_acl
+    +S - Marks the user as a successor.
+#endif
+    +F - Grants full founder access.
+    +b - Enables automatic kickban.
+    +e - Exempts from +b and enables unbanning self.
+
+#if module chanserv/successor_acl
+The special permission +* adds all permissions except +b, +S, and +F.
+#else
+The special permission +* adds all permissions except +b and +F.
+#endif
+The special permission -* removes all permissions including +b and +F.
+
+Examples:
+    /msg &nick& FLAGS #foo
+    /msg &nick& FLAGS #foo foo!*@bar.com VOP
+    /msg &nick& FLAGS #foo foo!*@bar.com -V+oO
+    /msg &nick& FLAGS #foo foo!*@bar.com -*
+    /msg &nick& FLAGS #foo foo +oOtsi
+    /msg &nick& FLAGS #foo TroubleUser!*@*.troubleisp.net +b
+    /msg &nick& FLAGS #foo !baz +*
