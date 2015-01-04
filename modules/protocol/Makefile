@@ -28,6 +28,7 @@ SRCS = \
 	ratbox.c	\
 	shadowircd.c	\
 	sporksircd.c	\
+        syntaxircd.c    \
 	ts6-generic.c	\
 	undernet.c	\
 	unreal.c
