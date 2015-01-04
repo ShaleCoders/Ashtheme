@@ -152,8 +152,8 @@ static void cs_cmd_unban(sourceinfo_t *si, int parc, char *parv[])
 			 !chanacs_source_has_flag(mc, si, CA_EXEMPT) ||
 			 irccasecmp(target, si->su->nick)))
 	{
-		command_fail(si, fault_noprivs, _("You are not authorized to perform this operation."));
-		return;
+		command_fail(si, fault_noprivs, _("You are not authorized to ban \2%s\2 on \2%s\2."), nick, mc->name);
+		continue;
 	}
 
 	if ((tu = user_find_named(target)))
