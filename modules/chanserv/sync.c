@@ -328,8 +328,8 @@ static void cs_cmd_sync(sourceinfo_t *si, int parc, char *parv[])
 
 	if (!chanacs_source_has_flag(mc, si, CA_RECOVER))
 	{
-		command_fail(si, fault_noprivs, _("You are not authorized to use sync on \2%s\2."), mc->name);
-		continue;
+		command_fail(si, fault_noprivs, "You are not authorized to perform this operation.");
+		return;
 	}
 
 	verbose(mc, "\2%s\2 used SYNC.", get_source_name(si));
