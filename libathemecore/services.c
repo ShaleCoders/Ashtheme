@@ -1109,14 +1109,14 @@ bool check_vhost_validity(sourceinfo_t *si, const char *host)
 	/* Never ever allow @!?* as they have special meaning in all ircds */
 	/* Empty, space anywhere and colon at the start break the protocol */
 	/* Also disallow ASCII 1-31 and "' as no sane IRCd allows them in hosts */
-	if (strchr(host, '@') || strchr(host, '!') || strchr(host, '?') ||
-			strchr(host, '*') || strchr(host, ' ') || strchr(host, '\'') ||
-			strchr(host, '"') || *host == ':' || *host == '\0' ||
-			has_ctrl_chars(host))
-	{
-		command_fail(si, fault_badparams, _("The vhost provided contains invalid characters."));
-		return false;
-	}
+	if (strchr(host, '@') || strchr(host, '!') || strchr(host, '?') || strchr(host, '~') ||
+                        strchr(host, '*') || strchr(host, ' ') || strchr(host, '\'') || strchr(host, '%') ||
+                        strchr(host, '^') || strchr(host, '&') || strchr(host, ')') || strchr(host, '$') ||
+                        strchr(host, '(') || strchr(host, '"') || *host == ':' || *host == '\0')
+        {
+                command_fail(si, fault_badparams, _("The vhost provided contains invalid characters."));
+                return false;
+        }
 	if (strlen(host) >= HOSTLEN)
 	{
 		command_fail(si, fault_badparams, _("The vhost provided is too long."));
@@ -1128,7 +1128,7 @@ bool check_vhost_validity(sourceinfo_t *si, const char *host)
 		command_fail(si, fault_badparams, _("The vhost provided looks like a CIDR mask."));
 		return false;
 	}
-	if (!is_valid_host(host))
+        if (!is_valid_host(host))
 	{
 		/* This can be stuff like missing dots too. */
 		command_fail(si, fault_badparams, _("The vhost provided is invalid."));
@@ -1136,6 +1136,7 @@ bool check_vhost_validity(sourceinfo_t *si, const char *host)
 	}
 	return true;
 }
+
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs
  * vim:ts=8
