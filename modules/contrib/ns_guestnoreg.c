@@ -5,8 +5,8 @@
  * This file contains code for blocking registrations of guest nicks.
  * Particularly for use with webchat clients.
  *
- * To actually use this, add a something like the following to 
- * the nickserv {} block of your atheme.conf:
+ * To actually use this, add a something like the following to
+ * the nickserv {} block of your ashtheme.conf:
  * guestnicks {
  *      "mib_";
  *      "WebUser";

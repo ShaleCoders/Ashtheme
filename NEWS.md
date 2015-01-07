@@ -137,9 +137,9 @@ misc
 - Add a git .mailmap
 - gameserv/dice: Ensure loop paramaters are integers limited to 1000
 
-atheme.conf
+ashtheme.conf
 -----------
-Be sure to check atheme.conf.example for more information on what each
+Be sure to check ashtheme.conf.example for more information on what each
 of these settings does.
 - Add 'registeremail' setting to serverinfo{}, specifying address that
   services emails should originate from.
@@ -227,7 +227,7 @@ exttarget
 
 groupserv
 ---------
-- all groupserv commands are now modules. Your atheme.conf will need
+- all groupserv commands are now modules. Your ashtheme.conf will need
   to be updated for this change if you use groupserv.
 - add join_flags config option and SET JOINFLAGS command. These allow
   changing the group flags a new user will get upon JOINing the group.
@@ -325,7 +325,7 @@ statserv
 
 xmlrpc
 ------
-- moved to transport/xmlrpc . Your atheme.conf will need to be updated for this
+- moved to transport/xmlrpc . Your ashtheme.conf will need to be updated for this
   change if you use xmlrpc.
 - bad_password() is now called on invalid XMLRPC logins.
 
@@ -924,7 +924,7 @@ nickserv
   a successful REGISTER if not.
 - Make gen_vhostonreg contrib module only grant vhost once it's verified,
   and also set vhosts on users without vhost as they identify.
-- Add clearer log messages for duplicate accounts/nicks/channels in atheme.db.
+- Add clearer log messages for duplicate accounts/nicks/channels in ashtheme.db.
 - Make INFO default to the user's nick (owned nicks) or current account (no
   owned nicks).
 - Also introduce an enforcer when FNCing a user via the RELEASE command.
@@ -973,7 +973,7 @@ chanserv
 
 alis
 ----
-- Move ALIS from contrib to modules. The new atheme.conf line is
+- Move ALIS from contrib to modules. The new ashtheme.conf line is
   loadmodule "modules/alis/main";
 
 memoserv
@@ -1106,7 +1106,7 @@ chanserv
   reason.
 - Add chanserv/set_private, allows users to hide some information about
   their channel.
-- Hide SET FANTASY from help if fantasy commands are disabled in atheme.conf.
+- Hide SET FANTASY from help if fantasy commands are disabled in ashtheme.conf.
 - Add chanserv::deftemplates config option to start channels off with some
   templates.
 - For the "addressing chanserv" fantasy command, require a non-letter
@@ -1347,7 +1347,7 @@ other
 - Add various checks to server names which should give clearer warnings
   about several misconfigurations.
 - Various corrections to log levels.
-- Exit atheme if atheme.db cannot be opened for reading for any reason other
+- Exit atheme if ashtheme.db cannot be opened for reading for any reason other
   than it not existing, to avoid overwriting it with an empty database later.
 - Add a hybserv/theia to atheme conversion tool to contrib.
 - Tone down debug logging a little so it is a bit more usable on large

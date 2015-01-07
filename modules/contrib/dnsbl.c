@@ -32,7 +32,7 @@
 *
 */
 
-/* To configure/use, add a block to the general{} section of your atheme.conf
+/* To configure/use, add a block to the general{} section of your ashtheme.conf
  * like this:
  *
  * blacklists {
@@ -395,7 +395,7 @@ static void lookup_blacklists(user_t *u)
 	}
 }
 
-/* This appears to be unnecessary on Atheme and only causes crashes so #if 0
+/* This appears to be unnecessary on Ashtheme and only causes crashes so #if 0
  * it out, at least for now. --jdhore
  */
 #if 0

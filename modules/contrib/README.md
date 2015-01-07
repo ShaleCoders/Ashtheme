@@ -1,4 +1,4 @@
-### Community-supported Atheme Modules
+### Community-supported ashtheme Modules
 
 This directory contains modules that are not included in the main modules
 folders for one reason or another. Either their code is a bit ugly, their
@@ -59,7 +59,7 @@ is registered or dropped. NOT RECOMMENDED TO USE.
 
 Sends a user a notice with some information specified in a
 regnotice {} block inside the chanserv {} block of your
-atheme.conf when the user registers a channel.
+ashtheme.conf when the user registers a channel.
 
 #### cs_updown.c
 
@@ -90,7 +90,7 @@ NOT RECOMMENDED TO USE.
 Assigns a $account.hidehostsuffix vhost to all users upon
 account registration. $account will be replaced by the users'
 accountname and hidehostsuffix is that config option from the
-serverinfo {} block of your atheme.conf.
+serverinfo {} block of your ashtheme.conf.
 
 #### graphtastical.c
 
@@ -133,7 +133,7 @@ code for what to edit.
 
 #### ns_ajoin.c
 
-Allows users to set a AJOIN/autojoin list of channels that Atheme
+Allows users to set a AJOIN/autojoin list of channels that ashtheme
 will automatically join them to upon identify. Only works on
 ShadowIRCd, InspIRCd and UnrealIRCd.
 
@@ -168,7 +168,7 @@ Generates a random password.
 
 Disallows the registration of nicks beginning with a string
 specified in the guestnicks {} block inside the nickserv {}
-block of your atheme.conf.
+block of your ashtheme.conf.
 
 #### ns_listlogins.c
 
@@ -188,23 +188,23 @@ Same as ns_mxcheck.c, but asynchronous.
 
 Sends a user a notice with some information specified in a
 regnotice {} block inside the nickserv {} block of your
-atheme.conf when the user registers an account.
+ashtheme.conf when the user registers an account.
 
 #### ns_waitreg.c
 
 Requires a user to have been connected for waitreg_time (in
-the nickserv {} block of your atheme.conf) seconds before
+the nickserv {} block of your ashtheme.conf) seconds before
 they are allowed to register their nick.
 
 #### on_db_save.c
 
-Allows you to specify a command that is run every time the Atheme
+Allows you to specify a command that is run every time the ashtheme
 database is saved.
 
 #### os_akillnicklist.c
 
 AKILLs users matched in a nicklist specified in your
-atheme.conf. See the comment at the top of the module's
+ashtheme.conf. See the comment at the top of the module's
 source code for details.
 
 #### os_defcon.c
