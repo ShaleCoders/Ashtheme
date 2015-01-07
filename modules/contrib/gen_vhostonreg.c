@@ -51,7 +51,12 @@ static void user_add_host(myuser_t *mu)
 	if (maxlen1 < 9)
 		return;
 	p = entity(mu)->name;
-	i = 0;
+	i = 0 + strlen(me.hidehostsuffix) + 1;
+	newhost[0] = '\0';
+
+	mowgli_strlcat(newhost, me.hidehostsuffix, sizeof newhost);
+	mowgli_strlcat(newhost, "/", sizeof newhost);
+
 	while (i < maxlen1 && *p != '\0')
 	{
 		if (isalnum(*p) || strchr(VALID_SPECIALS, *p))
@@ -62,24 +67,18 @@ static void user_add_host(myuser_t *mu)
 	}
 	if (invalidchar || *p != '\0')
 	{
-		if (i > maxlen1 - 6)
-			i = maxlen1 - 6;
-		snprintf(newhost + i, sizeof newhost - i, "-%05d", counter);
+		if (i > maxlen1 - 11)
+			i = maxlen1 - 11;
+		snprintf(newhost + i, sizeof newhost - i, "", counter);
 		counter++;
 		if (counter >= 100000)
 			counter = 0;
 		if (nicksvs.me != NULL)
 		{
-			myuser_notice(nicksvs.nick, mu, "Your account name cannot be used in a vhost directly. To ensure uniqueness, a number was added.");
-			myuser_notice(nicksvs.nick, mu, "To avoid this, register an account name containing only letters, digits and %s.", VALID_SPECIALS);
-			if (!nicksvs.no_nick_ownership && command_find(nicksvs.me->commands, "GROUP"))
-				myuser_notice(nicksvs.nick, mu, "If you drop %s you can group it to your new account.", entity(mu)->name);
-		}
+		            }
 	}
 	else
 		newhost[i] = '\0';
-	mowgli_strlcat(newhost, ".", sizeof newhost);
-	mowgli_strlcat(newhost, me.hidehostsuffix, sizeof newhost);
 
 	metadata_add(mu, "private:usercloak", newhost);
 }
@@ -106,7 +105,7 @@ static void hook_user_identify(user_t *u)
 {
 	/* if they have an existing cloak, don't do anything */
 	if ((metadata_find(u->myuser, "private:usercloak")) || (me.hidehostsuffix == NULL))
-		return;	
+		return;
 
 	/* they do not, add one. */
 	user_add_host(u->myuser);
@@ -117,3 +116,4 @@ static void hook_user_identify(user_t *u)
  * vim:sw=8
  * vim:noexpandtab
  */
+
