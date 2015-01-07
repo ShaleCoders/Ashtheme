@@ -63,6 +63,7 @@ SRCS =			\
 	successor_acl.c \
 	status.c	\
 	sync.c		\
+        syntaxquiet.c   \
 	taxonomy.c	\
 	template.c	\
 	topic.c	\

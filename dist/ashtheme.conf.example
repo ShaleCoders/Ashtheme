@@ -301,6 +301,7 @@ loadmodule "modules/nickserv/vhost";
  * OWNER/DEOWNER commands                       modules/chanserv/owner
  * PROTECT/DEPROTECT commands                   modules/chanserv/protect
  * QUIET command (+q support)                   modules/chanserv/quiet
+ * QUIET command (+y support) syntaxIRCd only   modules/chanserv/syntaxquiet
  * Channel takeover recovery (RECOVER command)  modules/chanserv/recover
  * REGISTER command                             modules/chanserv/register
  * SET command core                             modules/chanserv/set_core
@@ -367,6 +368,7 @@ loadmodule "modules/chanserv/op";
 #loadmodule "modules/chanserv/owner";
 #loadmodule "modules/chanserv/protect";
 #loadmodule "modules/chanserv/quiet";
+#loadmodule "modules/chanserv/syntaxquiet";
 loadmodule "modules/chanserv/recover";
 loadmodule "modules/chanserv/register";
 loadmodule "modules/chanserv/set_core";
