@@ -71,8 +71,8 @@ static void cmd_halfop(sourceinfo_t *si, bool halfopping, int parc, char *parv[]
 
 	if (!chanacs_source_has_flag(mc, si, CA_HALFOP))
 	{
-		command_fail(si, fault_noprivs, _("You are not authorized to (de)halfop \2%s\2 on \2%s\2."), nick, mc->name);
-		continue;
+		command_fail(si, fault_noprivs, _("You are not authorized to perform this operation on \2%s\2."), mc->name);
+		return;
 	}
 	
 	if (metadata_find(mc, "private:close:closer"))

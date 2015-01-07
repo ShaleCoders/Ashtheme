@@ -59,8 +59,8 @@ static void cmd_voice(sourceinfo_t *si, bool voicing, int parc, char *parv[])
 	if (!chanacs_source_has_flag(mc, si, CA_VOICE) && (tu != si->su ||
 				!chanacs_source_has_flag(mc, si, CA_AUTOVOICE)))
 	{
-		command_fail(si, fault_noprivs, _("You are not authorized to (de)voice \2%s\2 on \2%s\2."), nick, mc->name);
-		continue;
+		command_fail(si, fault_noprivs, _("You are not authorized to perform this operation on \2%s\2."), mc->name);
+		return;
 	}
 	
 	if (metadata_find(mc, "private:close:closer"))
