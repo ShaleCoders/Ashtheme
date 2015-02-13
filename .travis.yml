@@ -9,4 +9,4 @@ install:
 script: "./configure && make && make install"
 
 notifications:
-  irc: "irc.foxatomic.net#Lobby"
+  irc: "irc.letstalkcoding.net#Ashtheme"
