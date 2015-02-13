@@ -59,6 +59,8 @@ void _modinit(module_t *m)
 		return;
 	}
 
+	MODULE_TRY_REQUEST_DEPENDENCY(m, "hostserv/main");
+
 	hostsvs = service_find("hostserv");
 
 	hook_add_event("user_drop");
@@ -215,6 +217,8 @@ static void hs_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 	char *host = parv[0];
 	const char *target;
 	mynick_t *mn;
+	char buf[NICKLEN + 20];
+	metadata_t *md;
 	mowgli_node_t *n;
 	hsreq_t *l;
 	hook_host_request_t hdata;
@@ -249,9 +253,26 @@ static void hs_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 			command_fail(si, fault_noprivs, _("Nick \2%s\2 is not registered to your account."), mn->nick);
 			return;
 		}
+
+		snprintf(buf, sizeof buf, "private:usercloak:%s", target);
+		md = metadata_find(si->smu, buf);
+		if (md != NULL && !strcmp(host, md->value))
+		{
+			command_success_nodata(si, _("\2%s\2 is already the active vhost for your nick."), host);
+			return;
+		}
 	}
 	else
+	{
 		target = entity(si->smu)->name;
+
+		md = metadata_find(si->smu, "private:usercloak");
+		if (md != NULL && !strcmp(host, md->value))
+		{
+			command_success_nodata(si, _("\2%s\2 is already the active vhost for your account."), host);
+			return;
+		}
+	}
 
 	if (!check_vhost_validity(si, host))
 		return;
@@ -259,7 +280,7 @@ static void hs_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 	hdata.host = host;
 	hdata.si = si;
 	hdata.approved = 0;
-	/* keep target an si seperate so modules that use the hook
+	/* keep target and si seperate so modules that use the hook
 	 * can see if it's an account or nick requesting the host
 	 */
 	hdata.target = target;
@@ -431,7 +452,7 @@ static void hs_cmd_reject(sourceinfo_t *si, int parc, char *parv[])
 				else
 					notice(si->service->nick, u->nick, "[auto memo] Your requested vhost \2%s\2 for nick \2%s\2 has been rejected.", l->vhost, nick);
 			}
-			
+
 			if (reason)
 				logcommand(si, CMDLOG_REQUEST, "REJECT: \2%s\2 for \2%s\2, Reason: \2%s\2", l->vhost, nick, reason);
 			else
@@ -444,7 +465,7 @@ static void hs_cmd_reject(sourceinfo_t *si, int parc, char *parv[])
 			free(l);
 			return;
 		}
-		
+
 		if (!irccasecmp("*", nick))
 		{
 			if ((svs = service_find("memoserv")) != NULL)
@@ -463,7 +484,7 @@ static void hs_cmd_reject(sourceinfo_t *si, int parc, char *parv[])
 				else
 					notice(si->service->nick, u->nick, "[auto memo] Your requested vhost \2%s\2 for nick \2%s\2 has been rejected.", l->vhost, nick);
 			}
-		
+
 			if (reason)
 				logcommand(si, CMDLOG_REQUEST, "REJECT: \2%s\2 for \2%s\2, Reason: \2%s\2", l->vhost, l->nick, reason);
 			else
