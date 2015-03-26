@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * logger.c: Logging routines
  *
- * Copyright (c) 2005-2009 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2009 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,101 +31,93 @@ static mowgli_list_t log_files = { NULL, NULL, 0 };
 /* private destructor function for logfile_t. */
 static void logfile_delete_file(void *vdata)
 {
-	logfile_t *lf = (logfile_t *) vdata;
+        logfile_t *lf = (logfile_t *) vdata;
 
-	logfile_unregister(lf);
+        logfile_unregister(lf);
 
-	fclose(lf->log_file);
-	free(lf->log_path);
-	metadata_delete_all(lf);
-	free(lf);
+        fclose(lf->log_file);
+        free(lf->log_path);
+        metadata_delete_all(lf);
+        free(lf);
 }
 
 static void logfile_delete_channel(void *vdata)
 {
-	logfile_t *lf = (logfile_t *) vdata;
+        logfile_t *lf = (logfile_t *) vdata;
 
-	logfile_unregister(lf);
+        logfile_unregister(lf);
 
-	free(lf->log_path);
-	metadata_delete_all(lf);
-	free(lf);
+        free(lf->log_path);
+        metadata_delete_all(lf);
+        free(lf);
 }
 
 static void logfile_join_channels(channel_t *c)
 {
-	mowgli_node_t *n;
+        mowgli_node_t *n;
 
-	return_if_fail(c != NULL);
+        return_if_fail(c != NULL);
 
-	MOWGLI_ITER_FOREACH(n, log_files.head)
-	{
-		logfile_t *lf = n->data;
+        MOWGLI_ITER_FOREACH(n, log_files.head) {
+                logfile_t *lf = n->data;
 
-		if (!irccasecmp(c->name, lf->log_path))
-		{
-			if (!(c->flags & CHAN_LOG))
-			{
-				c->flags |= CHAN_LOG;
-				joinall(lf->log_path);
-			}
-			return;
-		}
-	}
+                if (!irccasecmp(c->name, lf->log_path)) {
+                        if (!(c->flags & CHAN_LOG)) {
+                                c->flags |= CHAN_LOG;
+                                joinall(lf->log_path);
+                        }
+                        return;
+                }
+        }
 }
 
 static void logfile_join_service(service_t *svs)
 {
-	mowgli_node_t *n;
-	channel_t *c;
+        mowgli_node_t *n;
+        channel_t *c;
 
-	return_if_fail(svs != NULL && svs->me != NULL);
+        return_if_fail(svs != NULL && svs->me != NULL);
 
-	/* no botserv bots */
-	if (svs->botonly)
-		return;
+        /* no botserv bots */
+        if (svs->botonly)
+                return;
 
-	MOWGLI_ITER_FOREACH(n, log_files.head)
-	{
-		logfile_t *lf = n->data;
+        MOWGLI_ITER_FOREACH(n, log_files.head) {
+                logfile_t *lf = n->data;
 
-		if (*lf->log_path != '#')
-			continue;
-		c = channel_find(lf->log_path);
-		if (c == NULL || !(c->flags & CHAN_LOG))
-			continue;
-		join(c->name, svs->me->nick);
-	}
+                if (*lf->log_path != '#')
+                        continue;
+                c = channel_find(lf->log_path);
+                if (c == NULL || !(c->flags & CHAN_LOG))
+                        continue;
+                join(c->name, svs->me->nick);
+        }
 }
 
 static void logfile_part_removed(void *unused)
 {
-	channel_t *c;
-	mowgli_patricia_iteration_state_t state;
-	mowgli_node_t *n;
-	bool valid;
+        channel_t *c;
+        mowgli_patricia_iteration_state_t state;
+        mowgli_node_t *n;
+        bool valid;
 
-	MOWGLI_PATRICIA_FOREACH(c, &state, chanlist)
-	{
-		if (!(c->flags & CHAN_LOG))
-			continue;
-		valid = false;
-		MOWGLI_ITER_FOREACH(n, log_files.head)
-		{
-			logfile_t *lf = n->data;
+        MOWGLI_PATRICIA_FOREACH(c, &state, chanlist) {
+                if (!(c->flags & CHAN_LOG))
+                        continue;
+                valid = false;
+                MOWGLI_ITER_FOREACH(n, log_files.head) {
+                        logfile_t *lf = n->data;
 
-			if (!irccasecmp(c->name, lf->log_path))
-			{
-				valid = true;
-				break;
-			}
-		}
-		if (!valid)
-		{
-			c->flags &= ~CHAN_LOG;
-			partall(c->name);
-		}
-	}
+                        if (!irccasecmp(c->name, lf->log_path)) {
+                                valid = true;
+                                break;
+                        }
+                }
+                if (!valid) {
+                        c->flags &= ~CHAN_LOG;
+                        partall(c->name);
+                }
+        }
 }
 
 /*
@@ -146,27 +138,23 @@ static void logfile_part_removed(void *unused)
 static const char *
 logfile_strip_control_codes(const char *buf)
 {
-	static char outbuf[BUFSIZE];
-	const char *in = buf;
-	char *out = outbuf;
+        static char outbuf[BUFSIZE];
+        const char *in = buf;
+        char *out = outbuf;
 
-	for (; *in != '\0'; in++)
-	{
-		if (*in > 31)
-		{
-			*out++ = *in;
-			continue;
-		}
-		else if (*in == 3)
-		{
-			in++;
-			while (isdigit(*in))
-				in++;
-		}
-	}
+        for (; *in != '\0'; in++) {
+                if (*in > 31) {
+                        *out++ = *in;
+                        continue;
+                } else if (*in == 3) {
+                        in++;
+                        while (isdigit(*in))
+                                in++;
+                }
+        }
 
-	*out = '\0';
-	return outbuf;
+        *out = '\0';
+        return outbuf;
 }
 
 /*
@@ -186,20 +174,20 @@ logfile_strip_control_codes(const char *buf)
  */
 static void logfile_write(logfile_t *lf, const char *buf)
 {
-	char datetime[BUFSIZE];
-	time_t t;
-	struct tm tm;
+        char datetime[BUFSIZE];
+        time_t t;
+        struct tm tm;
 
-	return_if_fail(lf != NULL);
-	return_if_fail(lf->log_file != NULL);
-	return_if_fail(buf != NULL);
+        return_if_fail(lf != NULL);
+        return_if_fail(lf->log_file != NULL);
+        return_if_fail(buf != NULL);
 
-	time(&t);
-	tm = *localtime(&t);
-	strftime(datetime, sizeof datetime, "[%d/%m/%Y %H:%M:%S]", &tm);
+        time(&t);
+        tm = *localtime(&t);
+        strftime(datetime, sizeof datetime, "[%d/%m/%Y %H:%M:%S]", &tm);
 
-	fprintf((FILE *) lf->log_file, "%s %s\n", datetime, logfile_strip_control_codes(buf));
-	fflush((FILE *) lf->log_file);
+        fprintf((FILE *) lf->log_file, "%s %s\n", datetime, logfile_strip_control_codes(buf));
+        fflush((FILE *) lf->log_file);
 }
 
 /*
@@ -219,50 +207,47 @@ static void logfile_write(logfile_t *lf, const char *buf)
  */
 static void logfile_write_irc(logfile_t *lf, const char *buf)
 {
-	channel_t *c;
+        channel_t *c;
 
-	return_if_fail(lf != NULL);
-	return_if_fail(lf->log_path != NULL);
-	return_if_fail(buf != NULL);
+        return_if_fail(lf != NULL);
+        return_if_fail(lf->log_path != NULL);
+        return_if_fail(buf != NULL);
 
-	if (!me.connected || me.bursting)
-		return;
+        if (!me.connected || me.bursting)
+                return;
 
-	c = channel_find(lf->log_path);
-	if (c != NULL && c->flags & CHAN_LOG)
-	{
-		size_t targetlen;
-		char targetbuf[NICKLEN];
-		service_t *svs = NULL;
+        c = channel_find(lf->log_path);
+        if (c != NULL && c->flags & CHAN_LOG) {
+                size_t targetlen;
+                char targetbuf[NICKLEN];
+                service_t *svs = NULL;
 
-		memset(targetbuf, '\0', sizeof targetbuf);
-		targetlen = (strchr(buf, ' ') - buf);
+                memset(targetbuf, '\0', sizeof targetbuf);
+                targetlen = (strchr(buf, ' ') - buf);
 
-		if (targetlen < NICKLEN)
-		{
-			mowgli_strlcpy(targetbuf, buf, sizeof targetbuf);
-			targetbuf[targetlen] = '\0';
+                if (targetlen < NICKLEN) {
+                        mowgli_strlcpy(targetbuf, buf, sizeof targetbuf);
+                        targetbuf[targetlen] = '\0';
 
-			svs = service_find_nick(targetbuf);
-			targetlen++;
+                        svs = service_find_nick(targetbuf);
+                        targetlen++;
 
-			if (svs == NULL)
-				targetlen = 0;
-		}
-		else
-			targetlen = 0;
+                        if (svs == NULL)
+                                targetlen = 0;
+                } else
+                        targetlen = 0;
 
-		if (svs == NULL)
-			svs = service_find("operserv");
+                if (svs == NULL)
+                        svs = service_find("operserv");
 
-		if (svs == NULL)
-			svs = service_find_any();
+                if (svs == NULL)
+                        svs = service_find_any();
 
-		if (svs != NULL && svs->me != NULL)
-			msg(svs->me->nick, c->name, "%s", (buf + targetlen));
-		else
-			wallops("%s", (buf + targetlen));
-	}
+                if (svs != NULL && svs->me != NULL)
+                        msg(svs->me->nick, c->name, "%s", (buf + targetlen));
+                else
+                        wallops("%s", (buf + targetlen));
+        }
 }
 
 /*
@@ -282,16 +267,16 @@ static void logfile_write_irc(logfile_t *lf, const char *buf)
  */
 static void logfile_write_snotices(logfile_t *lf, const char *buf)
 {
-	channel_t *c;
+        channel_t *c;
 
-	return_if_fail(lf != NULL);
-	return_if_fail(lf->log_path != NULL);
-	return_if_fail(buf != NULL);
+        return_if_fail(lf != NULL);
+        return_if_fail(lf->log_path != NULL);
+        return_if_fail(buf != NULL);
 
-	if (!me.connected || me.bursting)
-		return;
+        if (!me.connected || me.bursting)
+                return;
 
-	wallops("%s", buf);
+        wallops("%s", buf);
 }
 
 /*
@@ -310,7 +295,7 @@ static void logfile_write_snotices(logfile_t *lf, const char *buf)
  */
 void logfile_register(logfile_t *lf)
 {
-	mowgli_node_add(lf, &lf->node, &log_files);
+        mowgli_node_add(lf, &lf->node, &log_files);
 }
 
 /*
@@ -329,7 +314,7 @@ void logfile_register(logfile_t *lf)
  */
 void logfile_unregister(logfile_t *lf)
 {
-	mowgli_node_delete(&lf->node, &log_files);
+        mowgli_node_delete(&lf->node, &log_files);
 }
 
 /*
@@ -349,73 +334,64 @@ void logfile_unregister(logfile_t *lf)
  */
 logfile_t *logfile_new(const char *path, unsigned int log_mask)
 {
-	static bool hooked = false;
-	static time_t lastfail = 0;
-	channel_t *c;
-	logfile_t *lf = scalloc(sizeof(logfile_t), 1);
+        static bool hooked = false;
+        static time_t lastfail = 0;
+        channel_t *c;
+        logfile_t *lf = scalloc(sizeof(logfile_t), 1);
 
-	if (!strcasecmp(path, "!snotices") || !strcasecmp(path, "!wallops"))
-	{
-		object_init(object(lf), path, logfile_delete_channel);
+        if (!strcasecmp(path, "!snotices") || !strcasecmp(path, "!wallops")) {
+                object_init(object(lf), path, logfile_delete_channel);
 
-		lf->log_path = sstrdup(path);
-		lf->log_type = LOG_INTERACTIVE;
-		lf->write_func = logfile_write_snotices;
-	}
-	else if (*path != '#')
-	{
-		object_init(object(lf), path, logfile_delete_file);
-		if ((lf->log_file = fopen(path, "a")) == NULL)
-		{
-			free(lf);
+                lf->log_path = sstrdup(path);
+                lf->log_type = LOG_INTERACTIVE;
+                lf->write_func = logfile_write_snotices;
+        } else if (*path != '#') {
+                object_init(object(lf), path, logfile_delete_file);
+                if ((lf->log_file = fopen(path, "a")) == NULL) {
+                        free(lf);
 
-			if (me.connected && lastfail + 3600 < CURRTIME)
-			{
-				lastfail = CURRTIME;
-				wallops(_("Could not open log file (%s), log entries will be missing!"), strerror(errno));
-			}
+                        if (me.connected && lastfail + 3600 < CURRTIME) {
+                                lastfail = CURRTIME;
+                                wallops(_("Could not open log file (%s), log entries will be missing!"), strerror(errno));
+                        }
 
-			return NULL;
-		}
+                        return NULL;
+                }
 #ifdef FD_CLOEXEC
-		fcntl(fileno((FILE *)lf->log_file), F_SETFD, FD_CLOEXEC);
+                fcntl(fileno((FILE *)lf->log_file), F_SETFD, FD_CLOEXEC);
 #endif
-		lf->log_path = sstrdup(path);
-		lf->log_type = LOG_NONINTERACTIVE;
-		lf->write_func = logfile_write;
-	}
-	else
-	{
-		object_init(object(lf), path, logfile_delete_channel);
+                lf->log_path = sstrdup(path);
+                lf->log_type = LOG_NONINTERACTIVE;
+                lf->write_func = logfile_write;
+        } else {
+                object_init(object(lf), path, logfile_delete_channel);
 
-		lf->log_path = sstrdup(path);
-		lf->log_type = LOG_INTERACTIVE;
-		lf->write_func = logfile_write_irc;
+                lf->log_path = sstrdup(path);
+                lf->log_type = LOG_INTERACTIVE;
+                lf->write_func = logfile_write_irc;
 
-		c = channel_find(lf->log_path);
+                c = channel_find(lf->log_path);
 
-		if (me.connected && c != NULL)
-		{
-			joinall(lf->log_path);
-			c->flags |= CHAN_LOG;
-		}
-		if (!hooked)
-		{
-			hook_add_event("channel_add");
-			hook_add_channel_add(logfile_join_channels);
-			hook_add_event("service_introduce");
-			hook_add_service_introduce(logfile_join_service);
-			hook_add_event("config_ready");
-			hook_add_config_ready(logfile_part_removed);
-			hooked = true;
-		}
-	}
+                if (me.connected && c != NULL) {
+                        joinall(lf->log_path);
+                        c->flags |= CHAN_LOG;
+                }
+                if (!hooked) {
+                        hook_add_event("channel_add");
+                        hook_add_channel_add(logfile_join_channels);
+                        hook_add_event("service_introduce");
+                        hook_add_service_introduce(logfile_join_service);
+                        hook_add_event("config_ready");
+                        hook_add_config_ready(logfile_part_removed);
+                        hooked = true;
+                }
+        }
 
-	lf->log_mask = log_mask;
+        lf->log_mask = log_mask;
 
-	logfile_register(lf);
+        logfile_register(lf);
 
-	return lf;
+        return lf;
 }
 
 /*
@@ -435,7 +411,7 @@ logfile_t *logfile_new(const char *path, unsigned int log_mask)
  */
 void log_open(void)
 {
-	log_file = logfile_new(log_path, LG_ERROR | LG_INFO | LG_CMD_ADMIN);
+        log_file = logfile_new(log_path, LG_ERROR | LG_INFO | LG_CMD_ADMIN);
 }
 
 /*
@@ -454,10 +430,10 @@ void log_open(void)
  */
 void log_shutdown(void)
 {
-	mowgli_node_t *n, *tn;
+        mowgli_node_t *n, *tn;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, log_files.head)
-		object_unref(n->data);
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, log_files.head)
+        object_unref(n->data);
 }
 
 /*
@@ -476,18 +452,17 @@ void log_shutdown(void)
  */
 bool log_debug_enabled(void)
 {
-	mowgli_node_t *n;
-	logfile_t *lf;
+        mowgli_node_t *n;
+        logfile_t *lf;
 
-	if (log_force)
-		return true;
-	MOWGLI_ITER_FOREACH(n, log_files.head)
-	{
-		lf = n->data;
-		if (lf->log_mask & (LG_DEBUG | LG_RAWDATA))
-			return true;
-	}
-	return false;
+        if (log_force)
+                return true;
+        MOWGLI_ITER_FOREACH(n, log_files.head) {
+                lf = n->data;
+                if (lf->log_mask & (LG_DEBUG | LG_RAWDATA))
+                        return true;
+        }
+        return false;
 }
 
 /*
@@ -506,10 +481,10 @@ bool log_debug_enabled(void)
  */
 void log_master_set_mask(unsigned int mask)
 {
-	/* couldn't be opened etc */
-	if (log_file == NULL)
-		return;
-	log_file->log_mask = mask;
+        /* couldn't be opened etc */
+        if (log_file == NULL)
+                return;
+        log_file->log_mask = mask;
 }
 
 /*
@@ -530,82 +505,79 @@ void log_master_set_mask(unsigned int mask)
  */
 logfile_t *logfile_find_mask(unsigned int log_mask)
 {
-	mowgli_node_t *n;
-	logfile_t *lf;
+        mowgli_node_t *n;
+        logfile_t *lf;
 
-	MOWGLI_ITER_FOREACH(n, log_files.head)
-	{
-		lf = n->data;
-		if (lf->write_func != logfile_write)
-			continue;
-		if (lf->log_mask == log_mask)
-			return lf;
-	}
-	MOWGLI_ITER_FOREACH(n, log_files.head)
-	{
-		lf = n->data;
-		if (lf->write_func != logfile_write)
-			continue;
-		if ((lf->log_mask & log_mask) == log_mask)
-			return lf;
-	}
-	return NULL;
+        MOWGLI_ITER_FOREACH(n, log_files.head) {
+                lf = n->data;
+                if (lf->write_func != logfile_write)
+                        continue;
+                if (lf->log_mask == log_mask)
+                        return lf;
+        }
+        MOWGLI_ITER_FOREACH(n, log_files.head) {
+                lf = n->data;
+                if (lf->write_func != logfile_write)
+                        continue;
+                if ((lf->log_mask & log_mask) == log_mask)
+                        return lf;
+        }
+        return NULL;
 }
 
 static void vslog_ext(log_type_t type, unsigned int level, const char *fmt,
-		va_list args)
+                      va_list args)
 {
-	static bool in_slog = false;
-	char buf[BUFSIZE];
-	mowgli_node_t *n;
-	char datetime[BUFSIZE];
-	time_t t;
-	struct tm tm;
+        static bool in_slog = false;
+        char buf[BUFSIZE];
+        mowgli_node_t *n;
+        char datetime[BUFSIZE];
+        time_t t;
+        struct tm tm;
 
-	if (in_slog)
-		return;
-	in_slog = true;
+        if (in_slog)
+                return;
+        in_slog = true;
 
-	vsnprintf(buf, BUFSIZE, fmt, args);
+        vsnprintf(buf, BUFSIZE, fmt, args);
 
-	time(&t);
-	tm = *localtime(&t);
-	strftime(datetime, sizeof datetime, "[%d/%m/%Y %H:%M:%S]", &tm);
+        time(&t);
+        tm = *localtime(&t);
+        strftime(datetime, sizeof datetime, "[%d/%m/%Y %H:%M:%S]", &tm);
 
-	MOWGLI_ITER_FOREACH(n, log_files.head)
-	{
-		logfile_t *lf = (logfile_t *) n->data;
+        MOWGLI_ITER_FOREACH(n, log_files.head) {
+                logfile_t *lf = (logfile_t *) n->data;
 
-		if (type != LOG_ANY && type != lf->log_type)
-			continue;
-		if ((lf != log_file || !log_force) && !(level & lf->log_mask))
-			continue;
+                if (type != LOG_ANY && type != lf->log_type)
+                        continue;
+                if ((lf != log_file || !log_force) && !(level & lf->log_mask))
+                        continue;
 
-		return_if_fail(lf->write_func != NULL);
+                return_if_fail(lf->write_func != NULL);
 
-		lf->write_func(lf, buf);
-	}
+                lf->write_func(lf, buf);
+        }
 
-	/* 
-	 * if the event is in the default loglevel, and we are starting, then
-	 * display it in the controlling terminal.
-	 */
-	if (type != LOG_INTERACTIVE && ((runflags & (RF_LIVE | RF_STARTING) && 
-		(log_file != NULL ? log_file->log_mask : LG_ERROR | LG_INFO) & level) ||
-		(runflags & RF_LIVE && log_force)))
-		fprintf(stderr, "%s %s\n", datetime, logfile_strip_control_codes(buf));
+        /*
+         * if the event is in the default loglevel, and we are starting, then
+         * display it in the controlling terminal.
+         */
+        if (type != LOG_INTERACTIVE && ((runflags & (RF_LIVE | RF_STARTING) &&
+                                         (log_file != NULL ? log_file->log_mask : LG_ERROR | LG_INFO) & level) ||
+                                        (runflags & RF_LIVE && log_force)))
+                fprintf(stderr, "%s %s\n", datetime, logfile_strip_control_codes(buf));
 
-	in_slog = false;
+        in_slog = false;
 }
 
 static PRINTFLIKE(3, 4) void slog_ext(log_type_t type, unsigned int level,
-		const char *fmt, ...)
+                                      const char *fmt, ...)
 {
-	va_list args;
+        va_list args;
 
-	va_start(args, fmt);
-	vslog_ext(type, level, fmt, args);
-	va_end(args);
+        va_start(args, fmt);
+        vslog_ext(type, level, fmt, args);
+        va_end(args);
 }
 
 /*
@@ -628,11 +600,11 @@ static PRINTFLIKE(3, 4) void slog_ext(log_type_t type, unsigned int level,
  */
 void slog(unsigned int level, const char *fmt, ...)
 {
-	va_list args;
+        va_list args;
 
-	va_start(args, fmt);
-	vslog_ext(LOG_ANY, level, fmt, args);
-	va_end(args);
+        va_start(args, fmt);
+        vslog_ext(LOG_ANY, level, fmt, args);
+        va_end(args);
 }
 
 /*
@@ -655,16 +627,16 @@ void slog(unsigned int level, const char *fmt, ...)
  */
 void logcommand(sourceinfo_t *si, int level, const char *fmt, ...)
 {
-	va_list args;
-	char lbuf[BUFSIZE];
+        va_list args;
+        char lbuf[BUFSIZE];
 
-	va_start(args, fmt);
-	vsnprintf(lbuf, BUFSIZE, fmt, args);
-	va_end(args);
-	if (si->su != NULL)
-		logcommand_user(si->service, si->su, level, "%s", lbuf);
-	else
-		logcommand_external(si->service, si->v != NULL ? si->v->description : "unknown", si->connection, si->sourcedesc, si->smu, level, "%s", lbuf);
+        va_start(args, fmt);
+        vsnprintf(lbuf, BUFSIZE, fmt, args);
+        va_end(args);
+        if (si->su != NULL)
+                logcommand_user(si->service, si->su, level, "%s", lbuf);
+        else
+                logcommand_external(si->service, si->v != NULL ? si->v->description : "unknown", si->connection, si->sourcedesc, si->smu, level, "%s", lbuf);
 }
 
 /*
@@ -687,34 +659,34 @@ void logcommand(sourceinfo_t *si, int level, const char *fmt, ...)
  */
 void logcommand_user(service_t *svs, user_t *source, int level, const char *fmt, ...)
 {
-	va_list args;
-	char lbuf[BUFSIZE];
-	char accountbuf[NICKLEN * 5]; /* entity name len is NICKLEN * 4, plus another for the ID */
-	bool showaccount;
+        va_list args;
+        char lbuf[BUFSIZE];
+        char accountbuf[NICKLEN * 5]; /* entity name len is NICKLEN * 4, plus another for the ID */
+        bool showaccount;
 
-	va_start(args, fmt);
-	vsnprintf(lbuf, BUFSIZE, fmt, args);
-	va_end(args);
+        va_start(args, fmt);
+        vsnprintf(lbuf, BUFSIZE, fmt, args);
+        va_end(args);
 
-	accountbuf[0] = '\0';
-	if (source->myuser != NULL)
-		snprintf(accountbuf, sizeof accountbuf, "%s/%s",
-				entity(source->myuser)->name, entity(source->myuser)->id);
+        accountbuf[0] = '\0';
+        if (source->myuser != NULL)
+                snprintf(accountbuf, sizeof accountbuf, "%s/%s",
+                         entity(source->myuser)->name, entity(source->myuser)->id);
 
-	slog_ext(LOG_NONINTERACTIVE, level, "%s %s:%s!%s@%s[%s] %s",
-			svs != NULL ? svs->nick : me.name,
-			accountbuf,
-			source->nick, source->user, source->host,
-			source->ip != NULL ? source->ip : source->host,
-			lbuf);
-	showaccount = source->myuser == NULL || irccasecmp(entity(source->myuser)->name, source->nick);
-	slog_ext(LOG_INTERACTIVE, level, "%s %s%s%s%s %s",
-			svs != NULL ? svs->nick : me.name,
-			source->nick,
-			showaccount ? " (" : "",
-			showaccount ? (source->myuser ? entity(source->myuser)->name : "") : "",
-			showaccount ? ")" : "",
-			lbuf);
+        slog_ext(LOG_NONINTERACTIVE, level, "%s %s:%s!%s@%s[%s] %s",
+                 svs != NULL ? svs->nick : me.name,
+                 accountbuf,
+                 source->nick, source->user, source->host,
+                 source->ip != NULL ? source->ip : source->host,
+                 lbuf);
+        showaccount = source->myuser == NULL || irccasecmp(entity(source->myuser)->name, source->nick);
+        slog_ext(LOG_INTERACTIVE, level, "%s %s%s%s%s %s",
+                 svs != NULL ? svs->nick : me.name,
+                 source->nick,
+                 showaccount ? " (" : "",
+                 showaccount ? (source->myuser ? entity(source->myuser)->name : "") : "",
+                                 showaccount ? ")" : "",
+                                 lbuf);
 }
 
 /*
@@ -741,25 +713,25 @@ void logcommand_user(service_t *svs, user_t *source, int level, const char *fmt,
  */
 void logcommand_external(service_t *svs, const char *type, connection_t *source, const char *sourcedesc, myuser_t *mu, int level, const char *fmt, ...)
 {
-	va_list args;
-	char lbuf[BUFSIZE];
+        va_list args;
+        char lbuf[BUFSIZE];
 
-	va_start(args, fmt);
-	vsnprintf(lbuf, BUFSIZE, fmt, args);
-	va_end(args);
+        va_start(args, fmt);
+        vsnprintf(lbuf, BUFSIZE, fmt, args);
+        va_end(args);
 
-	slog_ext(LOG_NONINTERACTIVE, level, "%s %s:%s(%s)[%s] %s",
-			svs != NULL ? svs->nick : me.name,
-			mu != NULL ? entity(mu)->name : "",
-			type,
-			source != NULL ? source->hbuf : "<noconn>",
-			sourcedesc != NULL ? sourcedesc : "<unknown>",
-			lbuf);
-	slog_ext(LOG_INTERACTIVE, level, "%s <%s>%s %s",
-			svs != NULL ? svs->nick : me.name,
-			type,
-			mu != NULL ? entity(mu)->name : "",
-			lbuf);
+        slog_ext(LOG_NONINTERACTIVE, level, "%s %s:%s(%s)[%s] %s",
+                 svs != NULL ? svs->nick : me.name,
+                 mu != NULL ? entity(mu)->name : "",
+                 type,
+                 source != NULL ? source->hbuf : "<noconn>",
+                 sourcedesc != NULL ? sourcedesc : "<unknown>",
+                 lbuf);
+        slog_ext(LOG_INTERACTIVE, level, "%s <%s>%s %s",
+                 svs != NULL ? svs->nick : me.name,
+                 type,
+                 mu != NULL ? entity(mu)->name : "",
+                 lbuf);
 }
 
 /*
@@ -780,10 +752,10 @@ void logcommand_external(service_t *svs, const char *type, connection_t *source,
  */
 void logaudit_denycmd(sourceinfo_t *si, command_t *cmd, const char *userlevel)
 {
-	slog_ext(LOG_NONINTERACTIVE, LG_DENYCMD, "DENYCMD: [%s] was denied execution of [%s], need privileges [%s %s]",
-		 get_source_security_label(si), cmd->name, cmd->access, userlevel != NULL ? userlevel : "");
-	slog_ext(LOG_INTERACTIVE, LG_DENYCMD, "DENYCMD: \2%s\2 was denied execution of \2%s\2, need privileges \2%s %s\2",
-		 get_source_security_label(si), cmd->name, cmd->access, userlevel != NULL ? userlevel : "");
+        slog_ext(LOG_NONINTERACTIVE, LG_DENYCMD, "DENYCMD: [%s] was denied execution of [%s], need privileges [%s %s]",
+                 get_source_security_label(si), cmd->name, cmd->access, userlevel != NULL ? userlevel : "");
+        slog_ext(LOG_INTERACTIVE, LG_DENYCMD, "DENYCMD: \2%s\2 was denied execution of \2%s\2, need privileges \2%s %s\2",
+                 get_source_security_label(si), cmd->name, cmd->access, userlevel != NULL ? userlevel : "");
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

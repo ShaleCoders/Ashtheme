@@ -62,29 +62,29 @@ void *srealloc(void *oldptr, size_t newsize)
 /* does strdup()'s job, only with the above memory functions */
 char *sstrdup(const char *s)
 {
-	char *t;
+        char *t;
 
-	if (s == NULL)
-		return NULL;
+        if (s == NULL)
+                return NULL;
 
-	t = smalloc(strlen(s) + 1);
+        t = smalloc(strlen(s) + 1);
 
-	strcpy(t, s);
-	return t;
+        strcpy(t, s);
+        return t;
 }
 
 /* does strndup()'s job, only with the above memory functions */
 char *sstrndup(const char *s, int len)
 {
-	char *t;
+        char *t;
 
-	if (s == NULL)
-		return NULL;
+        if (s == NULL)
+                return NULL;
 
-	t = smalloc(len + 1);
+        t = smalloc(len + 1);
 
-	mowgli_strlcpy(t, s, len + 1);
-	return t;
+        mowgli_strlcpy(t, s, len + 1);
+        return t;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

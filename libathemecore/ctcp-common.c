@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * ctcp-common.c: Handling of CTCP commands.
  *
- * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,68 +29,67 @@ mowgli_patricia_t *ctcptree;
 
 static void ctcp_ping_handler(sourceinfo_t *si, char *cmd, char *args)
 {
-	char *s;
+        char *s;
 
-	s = strtok(args, "\001");
-	if (s != NULL)
-		strip(s);
+        s = strtok(args, "\001");
+        if (s != NULL)
+                strip(s);
 
-	notice(si->service->nick, si->su->nick, "\001PING %.100s\001", s != NULL ? s : "pong!");
+        notice(si->service->nick, si->su->nick, "\001PING %.100s\001", s != NULL ? s : "pong!");
 }
 
 static void ctcp_version_handler(sourceinfo_t *si, char *cmd, char *args)
 {
-	const crypt_impl_t *ci = crypt_get_default_provider();
+        const crypt_impl_t *ci = crypt_get_default_provider();
 
-	notice(si->service->nick, si->su->nick,
-		"\001VERSION %s. %s %s %s [%s] [enc:%s] Build Date: %s\001",
-		PACKAGE_STRING, revision, me.name, get_conf_opts(), ircd->ircdname, ci->id, __DATE__);
+        notice(si->service->nick, si->su->nick,
+               "\001VERSION %s. %s %s %s [%s] [enc:%s] Build Date: %s\001",
+               PACKAGE_STRING, revision, me.name, get_conf_opts(), ircd->ircdname, ci->id, __DATE__);
 }
 
 static void ctcp_clientinfo_handler(sourceinfo_t *si, char *cmd, char *args)
 {
-	notice(si->service->nick, si->su->nick, "\001CLIENTINFO PING VERSION CLIENTINFO\001");
+        notice(si->service->nick, si->su->nick, "\001CLIENTINFO PING VERSION CLIENTINFO\001");
 }
 
 /* easter egg (so is the next one, who cares) */
 static void ctcp_machinegod_handler(sourceinfo_t *si, char *cmd, char *args)
 {
-	notice(si->service->nick, si->su->nick, "\001MACHINEGOD http://www.findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=10369601\001");
+        notice(si->service->nick, si->su->nick, "\001MACHINEGOD http://www.findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=10369601\001");
 }
 
 /* update this as necessary to track notable events */
 static void ctcp_about_handler(sourceinfo_t *si, char *cmd, char *args)
 {
-	/*
-	 * October 16, 2012: UnrealIRCd 3.2.10-rc1 was released, the first release of the world's most widely-deployed
-	 * IRC server software featuring full support for the Atheme platform.  Unreal has thousands of users, of which
-	 * Atheme will now be aggressively marketed to by both projects.
-	 */
-	notice(si->service->nick, si->su->nick, "\001ABOUT \002Suddenly\002 the beast saw the machine god's wisdom, and surely Belphegor \037trembled\037. ~The Book of Atheme, 10:16\001");
+        /*
+         * October 16, 2012: UnrealIRCd 3.2.10-rc1 was released, the first release of the world's most widely-deployed
+         * IRC server software featuring full support for the Atheme platform.  Unreal has thousands of users, of which
+         * Atheme will now be aggressively marketed to by both projects.
+         */
+        notice(si->service->nick, si->su->nick, "\001ABOUT \002Suddenly\002 the beast saw the machine god's wisdom, and surely Belphegor \037trembled\037. ~The Book of Atheme, 10:16\001");
 }
 
 void common_ctcp_init(void)
 {
-	ctcptree = mowgli_patricia_create(noopcanon);
+        ctcptree = mowgli_patricia_create(noopcanon);
 
-	mowgli_patricia_add(ctcptree, "\001PING", ctcp_ping_handler);
-	mowgli_patricia_add(ctcptree, "\001VERSION\001", ctcp_version_handler);
-	mowgli_patricia_add(ctcptree, "\001CLIENTINFO\001", ctcp_clientinfo_handler);
-	mowgli_patricia_add(ctcptree, "\001MACHINEGOD\001", ctcp_machinegod_handler);
-	mowgli_patricia_add(ctcptree, "\001ABOUT\001", ctcp_about_handler);
+        mowgli_patricia_add(ctcptree, "\001PING", ctcp_ping_handler);
+        mowgli_patricia_add(ctcptree, "\001VERSION\001", ctcp_version_handler);
+        mowgli_patricia_add(ctcptree, "\001CLIENTINFO\001", ctcp_clientinfo_handler);
+        mowgli_patricia_add(ctcptree, "\001MACHINEGOD\001", ctcp_machinegod_handler);
+        mowgli_patricia_add(ctcptree, "\001ABOUT\001", ctcp_about_handler);
 }
 
 unsigned int handle_ctcp_common(sourceinfo_t *si, char *cmd, char *args)
 {
-	void (*handler)(sourceinfo_t *si, char *, char *);
+        void (*handler)(sourceinfo_t *si, char *, char *);
 
-	if ((handler = mowgli_patricia_retrieve(ctcptree, cmd)) != NULL)
-	{
-		handler(si, cmd, args);
-		return 1;
-	}
+        if ((handler = mowgli_patricia_retrieve(ctcptree, cmd)) != NULL) {
+                handler(si, cmd, args);
+                return 1;
+        }
 
-	return 0;
+        return 0;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

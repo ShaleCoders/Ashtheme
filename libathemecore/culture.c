@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * culture.c: Translation framework.
  *
- * Copyright (c) 2005-2009 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2009 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,10 +26,9 @@
 
 #include <dirent.h>
 
-struct translation_
-{
-	char *name;
-	char *replacement;
+struct translation_ {
+        char *name;
+        char *replacement;
 };
 
 typedef struct translation_ translation_t;
@@ -54,8 +53,8 @@ static mowgli_patricia_t *translation_tree; /* language translations */
  */
 void translation_init(void)
 {
-	itranslation_tree = mowgli_patricia_create(noopcanon);
-	translation_tree = mowgli_patricia_create(noopcanon);
+        itranslation_tree = mowgli_patricia_create(noopcanon);
+        translation_tree = mowgli_patricia_create(noopcanon);
 }
 
 /*
@@ -73,16 +72,16 @@ void translation_init(void)
  */
 const char *translation_get(const char *str)
 {
-	translation_t *t;
+        translation_t *t;
 
-	/* See if an internal substitution is present. */
-	if ((t = mowgli_patricia_retrieve(itranslation_tree, str)) != NULL)
-		str = t->replacement;
+        /* See if an internal substitution is present. */
+        if ((t = mowgli_patricia_retrieve(itranslation_tree, str)) != NULL)
+                str = t->replacement;
 
-	if ((t = mowgli_patricia_retrieve(translation_tree, str)) != NULL)
-		return t->replacement;
+        if ((t = mowgli_patricia_retrieve(translation_tree, str)) != NULL)
+                return t->replacement;
 
-	return str;
+        return str;
 }
 
 /*
@@ -99,12 +98,12 @@ const char *translation_get(const char *str)
  */
 void itranslation_create(const char *str, const char *trans)
 {
-	translation_t *t = smalloc(sizeof(translation_t));
+        translation_t *t = smalloc(sizeof(translation_t));
 
-	t->name = sstrdup(str);
-	t->replacement = sstrdup(trans);
+        t->name = sstrdup(str);
+        t->replacement = sstrdup(trans);
 
-	mowgli_patricia_add(itranslation_tree, t->name, t);
+        mowgli_patricia_add(itranslation_tree, t->name, t);
 }
 
 /*
@@ -121,14 +120,14 @@ void itranslation_create(const char *str, const char *trans)
  */
 void itranslation_destroy(const char *str)
 {
-	translation_t *t = mowgli_patricia_delete(itranslation_tree, str);
+        translation_t *t = mowgli_patricia_delete(itranslation_tree, str);
 
-	if (t == NULL)
-		return;
+        if (t == NULL)
+                return;
 
-	free(t->name);
-	free(t->replacement);
-	free(t);
+        free(t->name);
+        free(t->replacement);
+        free(t);
 }
 
 /*
@@ -145,20 +144,20 @@ void itranslation_destroy(const char *str)
  */
 void translation_create(const char *str, const char *trans)
 {
-	char buf[BUFSIZE];
-	translation_t *t = smalloc(sizeof(translation_t));
+        char buf[BUFSIZE];
+        translation_t *t = smalloc(sizeof(translation_t));
 
-	mowgli_strlcpy(buf, str, BUFSIZE);
-	replace(buf, BUFSIZE, "\\2", "\2");
+        mowgli_strlcpy(buf, str, BUFSIZE);
+        replace(buf, BUFSIZE, "\\2", "\2");
 
-	t->name = sstrdup(buf);
+        t->name = sstrdup(buf);
 
-	mowgli_strlcpy(buf, trans, BUFSIZE);
-	replace(buf, BUFSIZE, "\\2", "\2");
+        mowgli_strlcpy(buf, trans, BUFSIZE);
+        replace(buf, BUFSIZE, "\\2", "\2");
 
-	t->replacement = sstrdup(buf);
+        t->replacement = sstrdup(buf);
 
-	mowgli_patricia_add(translation_tree, t->name, t);
+        mowgli_patricia_add(translation_tree, t->name, t);
 }
 
 /*
@@ -175,26 +174,24 @@ void translation_create(const char *str, const char *trans)
  */
 void translation_destroy(const char *str)
 {
-	translation_t *t = mowgli_patricia_delete(translation_tree, str);
+        translation_t *t = mowgli_patricia_delete(translation_tree, str);
 
-	if (t == NULL)
-		return;
+        if (t == NULL)
+                return;
 
-	free(t->name);
-	free(t->replacement);
-	free(t);
+        free(t->name);
+        free(t->replacement);
+        free(t);
 }
 
-enum
-{
-	LANG_VALID = 1		/* have catalogs for this */
+enum {
+        LANG_VALID = 1		/* have catalogs for this */
 };
 
-struct language_
-{
-	char *name;
-	unsigned int flags; /* LANG_* */
-	mowgli_node_t node;
+struct language_ {
+        char *name;
+        unsigned int flags; /* LANG_* */
+        mowgli_node_t node;
 };
 
 static mowgli_list_t language_list;
@@ -202,129 +199,122 @@ static mowgli_list_t language_list;
 void
 language_init(void)
 {
-	DIR *dir;
-	struct dirent *ent;
-	language_t *lang;
+        DIR *dir;
+        struct dirent *ent;
+        language_t *lang;
 
-	lang = language_add("en");
-	lang->flags |= LANG_VALID;
-	dir = opendir(LOCALEDIR);
-	if (dir != NULL)
-	{
-		while ((ent = readdir(dir)) != NULL)
-		{
-			if (ent->d_name[0] != '.' &&
-					strcmp(ent->d_name, "all_languages") &&
-					strcmp(ent->d_name, "locale.alias") &&
-					strcmp(ent->d_name, "default"))
-			{
-				lang = language_add(ent->d_name);
-				lang->flags |= LANG_VALID;
-			}
-		}
-		closedir(dir);
-	}
+        lang = language_add("en");
+        lang->flags |= LANG_VALID;
+        dir = opendir(LOCALEDIR);
+        if (dir != NULL) {
+                while ((ent = readdir(dir)) != NULL) {
+                        if (ent->d_name[0] != '.' &&
+                                        strcmp(ent->d_name, "all_languages") &&
+                                        strcmp(ent->d_name, "locale.alias") &&
+                                        strcmp(ent->d_name, "default")) {
+                                lang = language_add(ent->d_name);
+                                lang->flags |= LANG_VALID;
+                        }
+                }
+                closedir(dir);
+        }
 }
 
 language_t *
 language_add(const char *name)
 {
-	language_t *lang;
+        language_t *lang;
 
-	if (!strcmp(name, "default"))
-		return NULL;
-	lang = language_find(name);
-	if (lang != NULL)
-		return lang;
-	slog(LG_DEBUG, "language_add(): %s", name);
-	lang = smalloc(sizeof(*lang));
-	lang->name = sstrdup(name);
-	mowgli_node_add(lang, &lang->node, &language_list);
-	return lang;
+        if (!strcmp(name, "default"))
+                return NULL;
+        lang = language_find(name);
+        if (lang != NULL)
+                return lang;
+        slog(LG_DEBUG, "language_add(): %s", name);
+        lang = smalloc(sizeof(*lang));
+        lang->name = sstrdup(name);
+        mowgli_node_add(lang, &lang->node, &language_list);
+        return lang;
 }
 
 language_t *
 language_find(const char *name)
 {
-	mowgli_node_t *n;
-	language_t *lang;
+        mowgli_node_t *n;
+        language_t *lang;
 
-	MOWGLI_ITER_FOREACH(n, language_list.head)
-	{
-		lang = n->data;
-		if (!strcmp(lang->name, name))
-			return lang;
-	}
-	return NULL;
+        MOWGLI_ITER_FOREACH(n, language_list.head) {
+                lang = n->data;
+                if (!strcmp(lang->name, name))
+                        return lang;
+        }
+        return NULL;
 }
 
 const char *
 language_names(void)
 {
-	static char names[512];
-	mowgli_node_t *n;
-	language_t *lang;
+        static char names[512];
+        mowgli_node_t *n;
+        language_t *lang;
 
-	names[0] = '\0';
-	MOWGLI_ITER_FOREACH(n, language_list.head)
-	{
-		lang = n->data;
-		if (lang->flags & LANG_VALID)
-		{
-			if (names[0] != '\0')
-				mowgli_strlcat(names, " ", sizeof names);
-			mowgli_strlcat(names, lang->name, sizeof names);
-		}
-	}
-	return names;
+        names[0] = '\0';
+        MOWGLI_ITER_FOREACH(n, language_list.head) {
+                lang = n->data;
+                if (lang->flags & LANG_VALID) {
+                        if (names[0] != '\0')
+                                mowgli_strlcat(names, " ", sizeof names);
+                        mowgli_strlcat(names, lang->name, sizeof names);
+                }
+        }
+        return names;
 }
 
 const char *
 language_get_name(const language_t *lang)
 {
-	if (lang == NULL)
-		return "default";
-	return lang->name;
+        if (lang == NULL)
+                return "default";
+        return lang->name;
 }
 
 const char *
 language_get_real_name(const language_t *lang)
 {
-	if (lang == NULL)
-		return config_options.language;
-	return lang->name;
+        if (lang == NULL)
+                return config_options.language;
+        return lang->name;
 }
 
 bool
 language_is_valid(const language_t *lang)
 {
-	if (lang == NULL)
-		return true;
-	return (lang->flags & LANG_VALID) != 0;
+        if (lang == NULL)
+                return true;
+        return (lang->flags & LANG_VALID) != 0;
 }
 
 void
 language_set_active(language_t *lang)
 {
 #ifdef ENABLE_NLS
-	static language_t *currlang;
+        static language_t *currlang;
 
-	if (lang == NULL)
-	{
-		lang = language_find(config_options.language);
-		if (lang == NULL)
-			lang = language_find("en");
-	}
-	if (currlang == lang)
-		return;
-	slog(LG_DEBUG, "language_set_active(): changing language from [%s] to [%s]",
-			currlang != NULL ? currlang->name : "default",
-			lang->name);
-	setlocale(LC_MESSAGES, lang->name);
-	textdomain(PACKAGE_NAME);
-	bindtextdomain(PACKAGE_NAME, LOCALEDIR);
-	currlang = lang;
-	setenv("LANGUAGE", currlang->name, 1);
+        if (lang == NULL) {
+                lang = language_find(config_options.language);
+                if (lang == NULL)
+                        lang = language_find("en");
+        }
+        if (currlang == lang)
+                return;
+        slog(LG_DEBUG, "language_set_active(): changing language from [%s] to [%s]",
+             currlang != NULL ? currlang->name : "default",
+             lang->name);
+        setlocale(LC_MESSAGES, lang->name);
+        textdomain(PACKAGE_NAME);
+        bindtextdomain(PACKAGE_NAME, LOCALEDIR);
+        currlang = lang;
+        setenv("LANGUAGE", currlang->name, 1);
 #endif
 }
 

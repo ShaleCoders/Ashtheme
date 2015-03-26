@@ -55,24 +55,23 @@ mowgli_heap_t *chanacs_heap;	/* HEAP_CHANACS */
  */
 void init_accounts(void)
 {
-	myuser_heap = sharedheap_get(sizeof(myuser_t));
-	mynick_heap = sharedheap_get(sizeof(myuser_t));
-	myuser_name_heap = sharedheap_get(sizeof(myuser_name_t));
-	mychan_heap = sharedheap_get(sizeof(mychan_t));
-	chanacs_heap = sharedheap_get(sizeof(chanacs_t));
-	mycertfp_heap = sharedheap_get(sizeof(mycertfp_t));
+        myuser_heap = sharedheap_get(sizeof(myuser_t));
+        mynick_heap = sharedheap_get(sizeof(myuser_t));
+        myuser_name_heap = sharedheap_get(sizeof(myuser_name_t));
+        mychan_heap = sharedheap_get(sizeof(mychan_t));
+        chanacs_heap = sharedheap_get(sizeof(chanacs_t));
+        mycertfp_heap = sharedheap_get(sizeof(mycertfp_t));
 
-	if (myuser_heap == NULL || mynick_heap == NULL || mychan_heap == NULL
-			|| chanacs_heap == NULL || mycertfp_heap == NULL)
-	{
-		slog(LG_ERROR, "init_accounts(): block allocator failure.");
-		exit(EXIT_FAILURE);
-	}
+        if (myuser_heap == NULL || mynick_heap == NULL || mychan_heap == NULL
+                        || chanacs_heap == NULL || mycertfp_heap == NULL) {
+                slog(LG_ERROR, "init_accounts(): block allocator failure.");
+                exit(EXIT_FAILURE);
+        }
 
-	nicklist = mowgli_patricia_create(irccasecanon);
-	oldnameslist = mowgli_patricia_create(irccasecanon);
-	mclist = mowgli_patricia_create(irccasecanon);
-	certfplist = mowgli_patricia_create(strcasecanon);
+        nicklist = mowgli_patricia_create(irccasecanon);
+        oldnameslist = mowgli_patricia_create(irccasecanon);
+        mclist = mowgli_patricia_create(irccasecanon);
+        certfplist = mowgli_patricia_create(strcasecanon);
 }
 
 /*
@@ -102,7 +101,7 @@ void init_accounts(void)
 
 myuser_t *myuser_add(const char *name, const char *pass, const char *email, unsigned int flags)
 {
-	return myuser_add_id(NULL, name, pass, email, flags);
+        return myuser_add_id(NULL, name, pass, email, flags);
 }
 
 /*
@@ -113,60 +112,58 @@ myuser_t *myuser_add(const char *name, const char *pass, const char *email, unsi
  */
 myuser_t *myuser_add_id(const char *id, const char *name, const char *pass, const char *email, unsigned int flags)
 {
-	myuser_t *mu;
-	soper_t *soper;
+        myuser_t *mu;
+        soper_t *soper;
 
-	return_val_if_fail((mu = myuser_find(name)) == NULL, mu);
+        return_val_if_fail((mu = myuser_find(name)) == NULL, mu);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "myuser_add(): %s -> %s", name, email);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "myuser_add(): %s -> %s", name, email);
 
-	mu = mowgli_heap_alloc(myuser_heap);
-	object_init(object(mu), name, (destructor_t) myuser_delete);
+        mu = mowgli_heap_alloc(myuser_heap);
+        object_init(object(mu), name, (destructor_t) myuser_delete);
 
-	entity(mu)->type = ENT_USER;
-	entity(mu)->name = strshare_get(name);
-	mu->email = strshare_get(email);
-	mu->email_canonical = canonicalize_email(email);
-	if (id)
-		mowgli_strlcpy(entity(mu)->id, id, sizeof(entity(mu)->id));
-	else
-		entity(mu)->id[0] = '\0';
+        entity(mu)->type = ENT_USER;
+        entity(mu)->name = strshare_get(name);
+        mu->email = strshare_get(email);
+        mu->email_canonical = canonicalize_email(email);
+        if (id)
+                mowgli_strlcpy(entity(mu)->id, id, sizeof(entity(mu)->id));
+        else
+                entity(mu)->id[0] = '\0';
 
-	mu->registered = CURRTIME;
-	mu->flags = flags;
-	if (mu->flags & MU_ENFORCE)
-	{
-		mu->flags &= ~MU_ENFORCE;
-		metadata_add(mu, "private:doenforce", "1");
-	}
-	mu->language = NULL; /* default */
+        mu->registered = CURRTIME;
+        mu->flags = flags;
+        if (mu->flags & MU_ENFORCE) {
+                mu->flags &= ~MU_ENFORCE;
+                metadata_add(mu, "private:doenforce", "1");
+        }
+        mu->language = NULL; /* default */
 
-	/* If it's already crypted, don't touch the password. Otherwise,
-	 * use set_password() to initialize it. Why? Because set_password
-	 * will move the user to encrypted passwords if possible. That way,
-	 * new registers are immediately protected and the database is
-	 * immediately converted the first time we start up with crypto.
-	 */
-	if (flags & MU_CRYPTPASS)
-		mowgli_strlcpy(mu->pass, pass, PASSLEN);
-	else
-		set_password(mu, pass);
+        /* If it's already crypted, don't touch the password. Otherwise,
+         * use set_password() to initialize it. Why? Because set_password
+         * will move the user to encrypted passwords if possible. That way,
+         * new registers are immediately protected and the database is
+         * immediately converted the first time we start up with crypto.
+         */
+        if (flags & MU_CRYPTPASS)
+                mowgli_strlcpy(mu->pass, pass, PASSLEN);
+        else
+                set_password(mu, pass);
 
-	myentity_put(entity(mu));
+        myentity_put(entity(mu));
 
-	if ((soper = soper_find_named(entity(mu)->name)) != NULL)
-	{
-		slog(LG_DEBUG, "myuser_add(): user `%s' has been declared as soper, activating privileges.", entity(mu)->name);
-		soper->myuser = mu;
-		mu->soper = soper;
-	}
+        if ((soper = soper_find_named(entity(mu)->name)) != NULL) {
+                slog(LG_DEBUG, "myuser_add(): user `%s' has been declared as soper, activating privileges.", entity(mu)->name);
+                soper->myuser = mu;
+                mu->soper = soper;
+        }
 
-	myuser_name_restore(entity(mu)->name, mu);
+        myuser_name_restore(entity(mu)->name, mu);
 
-	cnt.myuser++;
+        cnt.myuser++;
 
-	return mu;
+        return mu;
 }
 
 /*
@@ -185,148 +182,138 @@ myuser_t *myuser_add_id(const char *id, const char *name, const char *pass, cons
  */
 void myuser_delete(myuser_t *mu)
 {
-	myuser_t *successor;
-	mychan_t *mc;
-	mynick_t *mn;
-	user_t *u;
-	mowgli_node_t *n, *tn;
-	mymemo_t *memo;
-	chanacs_t *ca;
-	char nicks[200];
+        myuser_t *successor;
+        mychan_t *mc;
+        mynick_t *mn;
+        user_t *u;
+        mowgli_node_t *n, *tn;
+        mymemo_t *memo;
+        chanacs_t *ca;
+        char nicks[200];
 
-	return_if_fail(mu != NULL);
+        return_if_fail(mu != NULL);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "myuser_delete(): %s", entity(mu)->name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "myuser_delete(): %s", entity(mu)->name);
 
-	myuser_name_remember(entity(mu)->name, mu);
+        myuser_name_remember(entity(mu)->name, mu);
 
-	hook_call_myuser_delete(mu);
+        hook_call_myuser_delete(mu);
 
-	/* log them out */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->logins.head)
-	{
-		u = (user_t *)n->data;
-		if (!authservice_loaded || !ircd_on_logout(u, entity(mu)->name))
-		{
-			u->myuser = NULL;
-			mowgli_node_delete(n, &mu->logins);
-			mowgli_node_free(n);
-		}
-	}
+        /* log them out */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->logins.head) {
+                u = (user_t *)n->data;
+                if (!authservice_loaded || !ircd_on_logout(u, entity(mu)->name)) {
+                        u->myuser = NULL;
+                        mowgli_node_delete(n, &mu->logins);
+                        mowgli_node_free(n);
+                }
+        }
 
-	/* kill all their channels and chanacs */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, entity(mu)->chanacs.head)
-	{
-		ca = n->data;
-		mc = ca->mychan;
+        /* kill all their channels and chanacs */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, entity(mu)->chanacs.head) {
+                ca = n->data;
+                mc = ca->mychan;
 
-		/* attempt succession */
-		if (ca->level & CA_FOUNDER && mychan_num_founders(mc) == 1 && (successor = mychan_pick_successor(mc)) != NULL)
-		{
-			slog(LG_INFO, _("SUCCESSION: \2%s\2 to \2%s\2 from \2%s\2"), mc->name, entity(successor)->name, entity(mu)->name);
-			slog(LG_VERBOSE, "myuser_delete(): giving channel %s to %s (unused %lds, founder %s, chanacs %zu)",
-					mc->name, entity(successor)->name,
-					(long)(CURRTIME - mc->used),
-					entity(mu)->name,
-					MOWGLI_LIST_LENGTH(&mc->chanacs));
-			if (chansvs.me != NULL)
-				verbose(mc, "Foundership changed to \2%s\2 because \2%s\2 was dropped.", entity(successor)->name, entity(mu)->name);
+                /* attempt succession */
+                if (ca->level & CA_FOUNDER && mychan_num_founders(mc) == 1 && (successor = mychan_pick_successor(mc)) != NULL) {
+                        slog(LG_INFO, _("SUCCESSION: \2%s\2 to \2%s\2 from \2%s\2"), mc->name, entity(successor)->name, entity(mu)->name);
+                        slog(LG_VERBOSE, "myuser_delete(): giving channel %s to %s (unused %lds, founder %s, chanacs %zu)",
+                             mc->name, entity(successor)->name,
+                             (long)(CURRTIME - mc->used),
+                             entity(mu)->name,
+                             MOWGLI_LIST_LENGTH(&mc->chanacs));
+                        if (chansvs.me != NULL)
+                                verbose(mc, "Foundership changed to \2%s\2 because \2%s\2 was dropped.", entity(successor)->name, entity(mu)->name);
 
-			/* CA_FOUNDER | CA_FLAGS is the minimum required for full control; let chanserv take care of assigning the rest via founder_flags */
-			chanacs_change_simple(mc, entity(successor), NULL, CA_FOUNDER | CA_FLAGS, 0, NULL);
-			hook_call_channel_succession((
-					&(hook_channel_succession_req_t){
-						.mc = mc,
-						.mu = successor
-					}));
+                        /* CA_FOUNDER | CA_FLAGS is the minimum required for full control; let chanserv take care of assigning the rest via founder_flags */
+                        chanacs_change_simple(mc, entity(successor), NULL, CA_FOUNDER | CA_FLAGS, 0, NULL);
+                        hook_call_channel_succession((
+                        &(hook_channel_succession_req_t) {
+                                .mc = mc,
+                                      .mu = successor
+                                    }));
 
-			if (chansvs.me != NULL)
-				myuser_notice(chansvs.nick, successor, "You are now founder on \2%s\2 (as \2%s\2).", mc->name, entity(successor)->name);
-			object_unref(ca);
-		}
-		/* no successor found */
-		else if (ca->level & CA_FOUNDER && mychan_num_founders(mc) == 1)
-		{
-			slog(LG_REGISTER, _("DELETE: \2%s\2 from \2%s\2"), mc->name, entity(mu)->name);
-			slog(LG_VERBOSE, "myuser_delete(): deleting channel %s (unused %lds, founder %s, chanacs %zu)",
-					mc->name, (long)(CURRTIME - mc->used),
-					entity(mu)->name,
-					MOWGLI_LIST_LENGTH(&mc->chanacs));
+                        if (chansvs.me != NULL)
+                                myuser_notice(chansvs.nick, successor, "You are now founder on \2%s\2 (as \2%s\2).", mc->name, entity(successor)->name);
+                        object_unref(ca);
+                }
+                /* no successor found */
+                else if (ca->level & CA_FOUNDER && mychan_num_founders(mc) == 1) {
+                        slog(LG_REGISTER, _("DELETE: \2%s\2 from \2%s\2"), mc->name, entity(mu)->name);
+                        slog(LG_VERBOSE, "myuser_delete(): deleting channel %s (unused %lds, founder %s, chanacs %zu)",
+                             mc->name, (long)(CURRTIME - mc->used),
+                             entity(mu)->name,
+                             MOWGLI_LIST_LENGTH(&mc->chanacs));
 
-			hook_call_channel_drop(mc);
-			if (mc->chan != NULL && !(mc->chan->flags & CHAN_LOG))
-				part(mc->name, chansvs.nick);
-			object_unref(mc);
-		}
-		else /* not founder */
-			object_unref(ca);
-	}
+                        hook_call_channel_drop(mc);
+                        if (mc->chan != NULL && !(mc->chan->flags & CHAN_LOG))
+                                part(mc->name, chansvs.nick);
+                        object_unref(mc);
+                } else /* not founder */
+                        object_unref(ca);
+        }
 
-	/* remove them from the soper list */
-	if (soper_find(mu))
-		soper_delete(mu->soper);
+        /* remove them from the soper list */
+        if (soper_find(mu))
+                soper_delete(mu->soper);
 
-	metadata_delete_all(mu);
+        metadata_delete_all(mu);
 
-	/* kill any authcookies */
-	authcookie_destroy_all(mu);
+        /* kill any authcookies */
+        authcookie_destroy_all(mu);
 
-	/* delete memos */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->memos.head)
-	{
-		memo = (mymemo_t *)n->data;
+        /* delete memos */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->memos.head) {
+                memo = (mymemo_t *)n->data;
 
-		mowgli_node_delete(n, &mu->memos);
-		mowgli_node_free(n);
-		free(memo);
-	}
+                mowgli_node_delete(n, &mu->memos);
+                mowgli_node_free(n);
+                free(memo);
+        }
 
-	/* delete access entries */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->access_list.head)
-		myuser_access_delete(mu, (char *)n->data);
+        /* delete access entries */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->access_list.head)
+        myuser_access_delete(mu, (char *)n->data);
 
-	/* delete certfp entries */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->cert_fingerprints.head)
-		mycertfp_delete((mycertfp_t *) n->data);
+        /* delete certfp entries */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->cert_fingerprints.head)
+        mycertfp_delete((mycertfp_t *) n->data);
 
-	/* delete their nicks and report them */
-	nicks[0] = '\0';
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->nicks.head)
-	{
-		mn = n->data;
-		if (irccasecmp(mn->nick, entity(mu)->name))
-		{
-			slog(LG_VERBOSE, "myuser_delete(): deleting nick %s (unused %lds, owner %s)",
-					mn->nick,
-					(long)(CURRTIME - mn->lastseen),
-					entity(mu)->name);
-			if (strlen(nicks) + strlen(mn->nick) + 3 >= sizeof nicks)
-			{
-				slog(LG_REGISTER, _("DELETE: \2%s\2 from \2%s\2"), nicks, entity(mu)->name);
-				nicks[0] = '\0';
-			}
-			if (nicks[0] != '\0')
-				mowgli_strlcat(nicks, ", ", sizeof nicks);
-			mowgli_strlcat(nicks, "\2", sizeof nicks);
-			mowgli_strlcat(nicks, mn->nick, sizeof nicks);
-			mowgli_strlcat(nicks, "\2", sizeof nicks);
-		}
-		object_unref(mn);
-	}
-	if (nicks[0] != '\0')
-		slog(LG_REGISTER, _("DELETE: \2%s\2 from \2%s\2"), nicks, entity(mu)->name);
+        /* delete their nicks and report them */
+        nicks[0] = '\0';
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->nicks.head) {
+                mn = n->data;
+                if (irccasecmp(mn->nick, entity(mu)->name)) {
+                        slog(LG_VERBOSE, "myuser_delete(): deleting nick %s (unused %lds, owner %s)",
+                             mn->nick,
+                             (long)(CURRTIME - mn->lastseen),
+                             entity(mu)->name);
+                        if (strlen(nicks) + strlen(mn->nick) + 3 >= sizeof nicks) {
+                                slog(LG_REGISTER, _("DELETE: \2%s\2 from \2%s\2"), nicks, entity(mu)->name);
+                                nicks[0] = '\0';
+                        }
+                        if (nicks[0] != '\0')
+                                mowgli_strlcat(nicks, ", ", sizeof nicks);
+                        mowgli_strlcat(nicks, "\2", sizeof nicks);
+                        mowgli_strlcat(nicks, mn->nick, sizeof nicks);
+                        mowgli_strlcat(nicks, "\2", sizeof nicks);
+                }
+                object_unref(mn);
+        }
+        if (nicks[0] != '\0')
+                slog(LG_REGISTER, _("DELETE: \2%s\2 from \2%s\2"), nicks, entity(mu)->name);
 
-	/* entity(mu)->name is the index for this dtree */
-	myentity_del(entity(mu));
+        /* entity(mu)->name is the index for this dtree */
+        myentity_del(entity(mu));
 
-	strshare_unref(mu->email);
-	strshare_unref(mu->email_canonical);
-	strshare_unref(entity(mu)->name);
+        strshare_unref(mu->email);
+        strshare_unref(mu->email_canonical);
+        strshare_unref(entity(mu)->name);
 
-	mowgli_heap_free(myuser_heap, mu);
+        mowgli_heap_free(myuser_heap, mu);
 
-	cnt.myuser--;
+        cnt.myuser--;
 }
 
 /*
@@ -348,45 +335,41 @@ void myuser_delete(myuser_t *mu)
  */
 void myuser_rename(myuser_t *mu, const char *name)
 {
-	mowgli_node_t *n, *tn;
-	user_t *u;
-	hook_user_rename_t data;
-	stringref newname;
-	char nb[NICKLEN];
+        mowgli_node_t *n, *tn;
+        user_t *u;
+        hook_user_rename_t data;
+        stringref newname;
+        char nb[NICKLEN];
 
-	return_if_fail(mu != NULL);
-	return_if_fail(name != NULL);
-	return_if_fail(strlen(name) < NICKLEN);
+        return_if_fail(mu != NULL);
+        return_if_fail(name != NULL);
+        return_if_fail(strlen(name) < NICKLEN);
 
-	mowgli_strlcpy(nb, entity(mu)->name, NICKLEN);
-	newname = strshare_get(name);
+        mowgli_strlcpy(nb, entity(mu)->name, NICKLEN);
+        newname = strshare_get(name);
 
-	if (authservice_loaded)
-	{
-		MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->logins.head)
-		{
-			u = n->data;
-			ircd_on_logout(u, entity(mu)->name);
-		}
-	}
-	myentity_del(entity(mu));
+        if (authservice_loaded) {
+                MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->logins.head) {
+                        u = n->data;
+                        ircd_on_logout(u, entity(mu)->name);
+                }
+        }
+        myentity_del(entity(mu));
 
-	strshare_unref(entity(mu)->name);
-	entity(mu)->name = newname;
+        strshare_unref(entity(mu)->name);
+        entity(mu)->name = newname;
 
-	myentity_put(entity(mu));
-	if (authservice_loaded)
-	{
-		MOWGLI_ITER_FOREACH(n, mu->logins.head)
-		{
-			u = n->data;
-			ircd_on_login(u, mu, NULL);
-		}
-	}
+        myentity_put(entity(mu));
+        if (authservice_loaded) {
+                MOWGLI_ITER_FOREACH(n, mu->logins.head) {
+                        u = n->data;
+                        ircd_on_login(u, mu, NULL);
+                }
+        }
 
-	data.mu = mu;
-	data.oldname = nb;
-	hook_call_user_rename(&data);
+        data.mu = mu;
+        data.oldname = nb;
+        hook_call_user_rename(&data);
 }
 
 /*
@@ -406,14 +389,14 @@ void myuser_rename(myuser_t *mu, const char *name)
  */
 void myuser_set_email(myuser_t *mu, const char *newemail)
 {
-	return_if_fail(mu != NULL);
-	return_if_fail(newemail != NULL);
+        return_if_fail(mu != NULL);
+        return_if_fail(newemail != NULL);
 
-	strshare_unref(mu->email);
-	strshare_unref(mu->email_canonical);
+        strshare_unref(mu->email);
+        strshare_unref(mu->email_canonical);
 
-	mu->email = strshare_get(newemail);
-	mu->email_canonical = canonicalize_email(newemail);
+        mu->email = strshare_get(newemail);
+        mu->email_canonical = canonicalize_email(newemail);
 }
 
 /*
@@ -430,30 +413,25 @@ void myuser_set_email(myuser_t *mu, const char *newemail)
  *
  * Side Effects:
  *      - none
- */ 
+ */
 myuser_t *myuser_find_ext(const char *name)
 {
-	user_t *u;
-	mynick_t *mn;
+        user_t *u;
+        mynick_t *mn;
 
-	return_val_if_fail(name != NULL, NULL);
+        return_val_if_fail(name != NULL, NULL);
 
-	if (*name == '=')
-	{
-		u = user_find_named(name + 1);
-		return u != NULL ? u->myuser : NULL;
-	}
-	else if (*name == '?')
-	{
-		return myuser_find_uid(name + 1);
-	}
-	else if (nicksvs.no_nick_ownership)
-		return myuser_find(name);
-	else
-	{
-		mn = mynick_find(name);
-		return mn != NULL ? mn->owner : NULL;
-	}
+        if (*name == '=') {
+                u = user_find_named(name + 1);
+                return u != NULL ? u->myuser : NULL;
+        } else if (*name == '?') {
+                return myuser_find_uid(name + 1);
+        } else if (nicksvs.no_nick_ownership)
+                return myuser_find(name);
+        else {
+                mn = mynick_find(name);
+                return mn != NULL ? mn->owner : NULL;
+        }
 }
 
 /*
@@ -475,27 +453,26 @@ myuser_t *myuser_find_ext(const char *name)
  */
 void myuser_notice(const char *from, myuser_t *target, const char *fmt, ...)
 {
-	va_list ap;
-	char buf[BUFSIZE];
-	mowgli_node_t *n;
-	user_t *u;
+        va_list ap;
+        char buf[BUFSIZE];
+        mowgli_node_t *n;
+        user_t *u;
 
-	return_if_fail(from != NULL);
-	return_if_fail(target != NULL);
-	return_if_fail(fmt != NULL);
+        return_if_fail(from != NULL);
+        return_if_fail(target != NULL);
+        return_if_fail(fmt != NULL);
 
-	/* have to reformat it here, can't give a va_list to notice() :(
-	 * -- jilles
-	 */
-	va_start(ap, fmt);
-	vsnprintf(buf, BUFSIZE, fmt, ap);
-	va_end(ap);
+        /* have to reformat it here, can't give a va_list to notice() :(
+         * -- jilles
+         */
+        va_start(ap, fmt);
+        vsnprintf(buf, BUFSIZE, fmt, ap);
+        va_end(ap);
 
-	MOWGLI_ITER_FOREACH(n, target->logins.head)
-	{
-		u = (user_t *)n->data;
-		notice(from, u->nick, "%s", buf);
-	}
+        MOWGLI_ITER_FOREACH(n, target->logins.head) {
+                u = (user_t *)n->data;
+                notice(from, u->nick, "%s", buf);
+        }
 }
 
 /*
@@ -514,35 +491,34 @@ void myuser_notice(const char *from, myuser_t *target, const char *fmt, ...)
 bool
 myuser_access_verify(user_t *u, myuser_t *mu)
 {
-	mowgli_node_t *n;
-	char buf[USERLEN+HOSTLEN];
-	char buf2[USERLEN+HOSTLEN];
-	char buf3[USERLEN+HOSTLEN];
-	char buf4[USERLEN+HOSTLEN];
+        mowgli_node_t *n;
+        char buf[USERLEN+HOSTLEN];
+        char buf2[USERLEN+HOSTLEN];
+        char buf3[USERLEN+HOSTLEN];
+        char buf4[USERLEN+HOSTLEN];
 
-	return_val_if_fail(u != NULL, false);
-	return_val_if_fail(mu != NULL, false);
+        return_val_if_fail(u != NULL, false);
+        return_val_if_fail(mu != NULL, false);
 
-	if (!use_myuser_access)
-		return false;
+        if (!use_myuser_access)
+                return false;
 
-	if (metadata_find(mu, "private:freeze:freezer"))
-		return false;
+        if (metadata_find(mu, "private:freeze:freezer"))
+                return false;
 
-	snprintf(buf, sizeof buf, "%s@%s", u->user, u->vhost);
-	snprintf(buf2, sizeof buf2, "%s@%s", u->user, u->host);
-	snprintf(buf3, sizeof buf3, "%s@%s", u->user, u->ip);
-	snprintf(buf4, sizeof buf4, "%s@%s", u->user, u->chost);
+        snprintf(buf, sizeof buf, "%s@%s", u->user, u->vhost);
+        snprintf(buf2, sizeof buf2, "%s@%s", u->user, u->host);
+        snprintf(buf3, sizeof buf3, "%s@%s", u->user, u->ip);
+        snprintf(buf4, sizeof buf4, "%s@%s", u->user, u->chost);
 
-	MOWGLI_ITER_FOREACH(n, mu->access_list.head)
-	{
-		char *entry = (char *) n->data;
+        MOWGLI_ITER_FOREACH(n, mu->access_list.head) {
+                char *entry = (char *) n->data;
 
-		if (!match(entry, buf) || !match(entry, buf2) || !match(entry, buf3) || !match(entry, buf4) || !match_cidr(entry, buf3))
-			return true;
-	}
+                if (!match(entry, buf) || !match(entry, buf2) || !match(entry, buf3) || !match(entry, buf4) || !match_cidr(entry, buf3))
+                        return true;
+        }
 
-	return false;
+        return false;
 }
 
 /*
@@ -561,25 +537,24 @@ myuser_access_verify(user_t *u, myuser_t *mu)
 bool
 myuser_access_add(myuser_t *mu, const char *mask)
 {
-	mowgli_node_t *n;
-	char *msk;
+        mowgli_node_t *n;
+        char *msk;
 
-	return_val_if_fail(mu != NULL, false);
-	return_val_if_fail(mask != NULL, false);
+        return_val_if_fail(mu != NULL, false);
+        return_val_if_fail(mask != NULL, false);
 
-	if (MOWGLI_LIST_LENGTH(&mu->access_list) > me.mdlimit)
-	{
-		slog(LG_DEBUG, "myuser_access_add(): access entry limit reached for %s", entity(mu)->name);
-		return false;
-	}
+        if (MOWGLI_LIST_LENGTH(&mu->access_list) > me.mdlimit) {
+                slog(LG_DEBUG, "myuser_access_add(): access entry limit reached for %s", entity(mu)->name);
+                return false;
+        }
 
-	msk = sstrdup(mask);
-	n = mowgli_node_create();
-	mowgli_node_add(msk, n, &mu->access_list);
+        msk = sstrdup(mask);
+        n = mowgli_node_create();
+        mowgli_node_add(msk, n, &mu->access_list);
 
-	cnt.myuser_access++;
+        cnt.myuser_access++;
 
-	return true;
+        return true;
 }
 
 /*
@@ -597,19 +572,18 @@ myuser_access_add(myuser_t *mu, const char *mask)
 char *
 myuser_access_find(myuser_t *mu, const char *mask)
 {
-	mowgli_node_t *n;
+        mowgli_node_t *n;
 
-	return_val_if_fail(mu != NULL, NULL);
-	return_val_if_fail(mask != NULL, NULL);
+        return_val_if_fail(mu != NULL, NULL);
+        return_val_if_fail(mask != NULL, NULL);
 
-	MOWGLI_ITER_FOREACH(n, mu->access_list.head)
-	{
-		char *entry = (char *) n->data;
+        MOWGLI_ITER_FOREACH(n, mu->access_list.head) {
+                char *entry = (char *) n->data;
 
-		if (!strcasecmp(entry, mask))
-			return entry;
-	}
-	return NULL;
+                if (!strcasecmp(entry, mask))
+                        return entry;
+        }
+        return NULL;
 }
 
 /*
@@ -627,26 +601,24 @@ myuser_access_find(myuser_t *mu, const char *mask)
 void
 myuser_access_delete(myuser_t *mu, const char *mask)
 {
-	mowgli_node_t *n, *tn;
+        mowgli_node_t *n, *tn;
 
-	return_if_fail(mu != NULL);
-	return_if_fail(mask != NULL);
+        return_if_fail(mu != NULL);
+        return_if_fail(mask != NULL);
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->access_list.head)
-	{
-		char *entry = (char *) n->data;
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mu->access_list.head) {
+                char *entry = (char *) n->data;
 
-		if (!strcasecmp(entry, mask))
-		{
-			mowgli_node_delete(n, &mu->access_list);
-			mowgli_node_free(n);
-			free(entry);
+                if (!strcasecmp(entry, mask)) {
+                        mowgli_node_delete(n, &mu->access_list);
+                        mowgli_node_free(n);
+                        free(entry);
 
-			cnt.myuser_access--;
+                        cnt.myuser_access--;
 
-			return;
-		}
-	}
+                        return;
+                }
+        }
 }
 
 /***************
@@ -673,28 +645,28 @@ myuser_access_delete(myuser_t *mu, const char *mask)
  */
 mynick_t *mynick_add(myuser_t *mu, const char *name)
 {
-	mynick_t *mn;
+        mynick_t *mn;
 
-	return_val_if_fail((mn = mynick_find(name)) == NULL, mn);
+        return_val_if_fail((mn = mynick_find(name)) == NULL, mn);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "mynick_add(): %s -> %s", name, entity(mu)->name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "mynick_add(): %s -> %s", name, entity(mu)->name);
 
-	mn = mowgli_heap_alloc(mynick_heap);
-	object_init(object(mn), name, (destructor_t) mynick_delete);
+        mn = mowgli_heap_alloc(mynick_heap);
+        object_init(object(mn), name, (destructor_t) mynick_delete);
 
-	mowgli_strlcpy(mn->nick, name, NICKLEN);
-	mn->owner = mu;
-	mn->registered = CURRTIME;
+        mowgli_strlcpy(mn->nick, name, NICKLEN);
+        mn->owner = mu;
+        mn->registered = CURRTIME;
 
-	mowgli_patricia_add(nicklist, mn->nick, mn);
-	mowgli_node_add(mn, &mn->node, &mu->nicks);
+        mowgli_patricia_add(nicklist, mn->nick, mn);
+        mowgli_node_add(mn, &mn->node, &mu->nicks);
 
-	myuser_name_restore(mn->nick, mu);
+        myuser_name_restore(mn->nick, mu);
 
-	cnt.mynick++;
+        cnt.mynick++;
 
-	return mn;
+        return mn;
 }
 
 /*
@@ -713,19 +685,19 @@ mynick_t *mynick_add(myuser_t *mu, const char *name)
  */
 void mynick_delete(mynick_t *mn)
 {
-	return_if_fail(mn != NULL);
+        return_if_fail(mn != NULL);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "mynick_delete(): %s", mn->nick);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "mynick_delete(): %s", mn->nick);
 
-	myuser_name_remember(mn->nick, mn->owner);
+        myuser_name_remember(mn->nick, mn->owner);
 
-	mowgli_patricia_delete(nicklist, mn->nick);
-	mowgli_node_delete(&mn->node, &mn->owner->nicks);
+        mowgli_patricia_delete(nicklist, mn->nick);
+        mowgli_node_delete(&mn->node, &mn->owner->nicks);
 
-	mowgli_heap_free(mynick_heap, mn);
+        mowgli_heap_free(mynick_heap, mn);
 
-	cnt.mynick--;
+        cnt.mynick--;
 }
 
 /*************************
@@ -751,23 +723,23 @@ static void myuser_name_delete(myuser_name_t *mun);
  */
 myuser_name_t *myuser_name_add(const char *name)
 {
-	myuser_name_t *mun;
+        myuser_name_t *mun;
 
-	return_val_if_fail((mun = myuser_name_find(name)) == NULL, mun);
+        return_val_if_fail((mun = myuser_name_find(name)) == NULL, mun);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "myuser_name_add(): %s", name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "myuser_name_add(): %s", name);
 
-	mun = mowgli_heap_alloc(myuser_name_heap);
-	object_init(object(mun), name, (destructor_t) myuser_name_delete);
+        mun = mowgli_heap_alloc(myuser_name_heap);
+        object_init(object(mun), name, (destructor_t) myuser_name_delete);
 
-	mowgli_strlcpy(mun->name, name, NICKLEN);
+        mowgli_strlcpy(mun->name, name, NICKLEN);
 
-	mowgli_patricia_add(oldnameslist, mun->name, mun);
+        mowgli_patricia_add(oldnameslist, mun->name, mun);
 
-	cnt.myuser_name++;
+        cnt.myuser_name++;
 
-	return mun;
+        return mun;
 }
 
 /*
@@ -786,18 +758,18 @@ myuser_name_t *myuser_name_add(const char *name)
  */
 static void myuser_name_delete(myuser_name_t *mun)
 {
-	return_if_fail(mun != NULL);
+        return_if_fail(mun != NULL);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "myuser_name_delete(): %s", mun->name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "myuser_name_delete(): %s", mun->name);
 
-	mowgli_patricia_delete(oldnameslist, mun->name);
+        mowgli_patricia_delete(oldnameslist, mun->name);
 
-	metadata_delete_all(mun);
+        metadata_delete_all(mun);
 
-	mowgli_heap_free(myuser_name_heap, mun);
+        mowgli_heap_free(myuser_name_heap, mun);
 
-	cnt.myuser_name--;
+        cnt.myuser_name--;
 }
 
 /*
@@ -818,27 +790,27 @@ static void myuser_name_delete(myuser_name_t *mun)
  */
 void myuser_name_remember(const char *name, myuser_t *mu)
 {
-	myuser_name_t *mun;
-	metadata_t *md;
+        myuser_name_t *mun;
+        metadata_t *md;
 
-	if (myuser_name_find(name))
-		return;
+        if (myuser_name_find(name))
+                return;
 
-	md = metadata_find(mu, "private:mark:setter");
-	if (md == NULL)
-		return;
+        md = metadata_find(mu, "private:mark:setter");
+        if (md == NULL)
+                return;
 
-	mun = myuser_name_add(name);
+        mun = myuser_name_add(name);
 
-	metadata_add(mun, md->name, md->value);
-	md = metadata_find(mu, "private:mark:reason");
-	if (md != NULL)
-		metadata_add(mun, md->name, md->value);
-	md = metadata_find(mu, "private:mark:timestamp");
-	if (md != NULL)
-		metadata_add(mun, md->name, md->value);
+        metadata_add(mun, md->name, md->value);
+        md = metadata_find(mu, "private:mark:reason");
+        if (md != NULL)
+                metadata_add(mun, md->name, md->value);
+        md = metadata_find(mu, "private:mark:timestamp");
+        if (md != NULL)
+                metadata_add(mun, md->name, md->value);
 
-	return;
+        return;
 }
 
 /*
@@ -859,56 +831,49 @@ void myuser_name_remember(const char *name, myuser_t *mu)
  */
 void myuser_name_restore(const char *name, myuser_t *mu)
 {
-	myuser_name_t *mun;
-	metadata_t *md, *md2;
-	mowgli_patricia_iteration_state_t state;
-	char *copy;
+        myuser_name_t *mun;
+        metadata_t *md, *md2;
+        mowgli_patricia_iteration_state_t state;
+        char *copy;
 
-	mun = myuser_name_find(name);
-	if (mun == NULL)
-		return;
+        mun = myuser_name_find(name);
+        if (mun == NULL)
+                return;
 
-	md = metadata_find(mu, "private:mark:reason");
-	md2 = metadata_find(mun, "private:mark:reason");
-	if (md != NULL && md2 != NULL && strcmp(md->value, md2->value))
-	{
-		wallops(_("Not restoring mark \2\"%s\"\2 for account \2%s\2 (name \2%s\2) which is already marked"), md2->value, entity(mu)->name, name);
-		slog(LG_INFO, _("MARK:FORGET: \2\"%s\"\2 for \2%s (%s)\2 (already marked)"), md2->value, name, entity(mu)->name);
-		slog(LG_VERBOSE, "myuser_name_restore(): not restoring mark \"%s\" for account %s (name %s) which is already marked",
-				md2->value, entity(mu)->name, name);
-	}
-	else if (md == NULL && md2 != NULL)
-	{
-		slog(LG_INFO, _("MARK:RESTORE: \2\"%s\"\2 for \2%s (%s)\2"), md2->value, name, entity(mu)->name);
-		slog(LG_VERBOSE, "myuser_name_restore(): restoring mark \"%s\" for account %s (name %s)",
-				md2->value, entity(mu)->name, name);
-	}
+        md = metadata_find(mu, "private:mark:reason");
+        md2 = metadata_find(mun, "private:mark:reason");
+        if (md != NULL && md2 != NULL && strcmp(md->value, md2->value)) {
+                wallops(_("Not restoring mark \2\"%s\"\2 for account \2%s\2 (name \2%s\2) which is already marked"), md2->value, entity(mu)->name, name);
+                slog(LG_INFO, _("MARK:FORGET: \2\"%s\"\2 for \2%s (%s)\2 (already marked)"), md2->value, name, entity(mu)->name);
+                slog(LG_VERBOSE, "myuser_name_restore(): not restoring mark \"%s\" for account %s (name %s) which is already marked",
+                     md2->value, entity(mu)->name, name);
+        } else if (md == NULL && md2 != NULL) {
+                slog(LG_INFO, _("MARK:RESTORE: \2\"%s\"\2 for \2%s (%s)\2"), md2->value, name, entity(mu)->name);
+                slog(LG_VERBOSE, "myuser_name_restore(): restoring mark \"%s\" for account %s (name %s)",
+                     md2->value, entity(mu)->name, name);
+        }
 
-	if (object(mun)->metadata)
-	{
-		MOWGLI_PATRICIA_FOREACH(md, &state, object(mun)->metadata)
-		{
-			/* prefer current metadata to saved */
-			if (!metadata_find(mu, md->name))
-			{
-				if (strcmp(md->name, "private:mark:reason") ||
-						!strncmp(md->value, "(restored) ", 11))
-					metadata_add(mu, md->name, md->value);
-				else
-				{
-					copy = smalloc(strlen(md->value) + 12);
-					memcpy(copy, "(restored) ", 11);
-					strcpy(copy + 11, md->value);
-					metadata_add(mu, md->name, copy);
-					free(copy);
-				}
-			}
-		}
-	}
+        if (object(mun)->metadata) {
+                MOWGLI_PATRICIA_FOREACH(md, &state, object(mun)->metadata) {
+                        /* prefer current metadata to saved */
+                        if (!metadata_find(mu, md->name)) {
+                                if (strcmp(md->name, "private:mark:reason") ||
+                                                !strncmp(md->value, "(restored) ", 11))
+                                        metadata_add(mu, md->name, md->value);
+                                else {
+                                        copy = smalloc(strlen(md->value) + 12);
+                                        memcpy(copy, "(restored) ", 11);
+                                        strcpy(copy + 11, md->value);
+                                        metadata_add(mu, md->name, copy);
+                                        free(copy);
+                                }
+                        }
+                }
+        }
 
-	object_unref(mun);
+        object_unref(mun);
 
-	return;
+        return;
 }
 
 /*******************
@@ -917,39 +882,39 @@ void myuser_name_restore(const char *name, myuser_t *mu)
 
 mycertfp_t *mycertfp_add(myuser_t *mu, const char *certfp)
 {
-	mycertfp_t *mcfp;
+        mycertfp_t *mcfp;
 
-	return_val_if_fail(mu != NULL, NULL);
-	return_val_if_fail(certfp != NULL, NULL);
+        return_val_if_fail(mu != NULL, NULL);
+        return_val_if_fail(certfp != NULL, NULL);
 
-	mcfp = mowgli_heap_alloc(mycertfp_heap);
-	mcfp->mu = mu;
-	mcfp->certfp = sstrdup(certfp);
+        mcfp = mowgli_heap_alloc(mycertfp_heap);
+        mcfp->mu = mu;
+        mcfp->certfp = sstrdup(certfp);
 
-	mowgli_node_add(mcfp, &mcfp->node, &mu->cert_fingerprints);
-	mowgli_patricia_add(certfplist, mcfp->certfp, mcfp);
+        mowgli_node_add(mcfp, &mcfp->node, &mu->cert_fingerprints);
+        mowgli_patricia_add(certfplist, mcfp->certfp, mcfp);
 
-	return mcfp;
+        return mcfp;
 }
 
 void mycertfp_delete(mycertfp_t *mcfp)
 {
-	return_if_fail(mcfp != NULL);
-	return_if_fail(mcfp->mu != NULL);
-	return_if_fail(mcfp->certfp != NULL);
+        return_if_fail(mcfp != NULL);
+        return_if_fail(mcfp->mu != NULL);
+        return_if_fail(mcfp->certfp != NULL);
 
-	mowgli_node_delete(&mcfp->node, &mcfp->mu->cert_fingerprints);
-	mowgli_patricia_delete(certfplist, mcfp->certfp);
+        mowgli_node_delete(&mcfp->node, &mcfp->mu->cert_fingerprints);
+        mowgli_patricia_delete(certfplist, mcfp->certfp);
 
-	free(mcfp->certfp);
-	mowgli_heap_free(mycertfp_heap, mcfp);
+        free(mcfp->certfp);
+        mowgli_heap_free(mycertfp_heap, mcfp);
 }
 
 mycertfp_t *mycertfp_find(const char *certfp)
 {
-	return_val_if_fail(certfp != NULL, NULL);
+        return_val_if_fail(certfp != NULL, NULL);
 
-	return mowgli_patricia_retrieve(certfplist, certfp);
+        return mowgli_patricia_retrieve(certfplist, certfp);
 }
 
 /***************
@@ -959,56 +924,56 @@ mycertfp_t *mycertfp_find(const char *certfp)
 /* private destructor for mychan_t. */
 static void mychan_delete(mychan_t *mc)
 {
-	mowgli_node_t *n, *tn;
+        mowgli_node_t *n, *tn;
 
-	return_if_fail(mc != NULL);
+        return_if_fail(mc != NULL);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "mychan_delete(): %s", mc->name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "mychan_delete(): %s", mc->name);
 
-	if (mc->chan != NULL)
-		mc->chan->mychan = NULL;
+        if (mc->chan != NULL)
+                mc->chan->mychan = NULL;
 
-	/* remove the chanacs shiz */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, mc->chanacs.head)
-		object_unref(n->data);
+        /* remove the chanacs shiz */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, mc->chanacs.head)
+        object_unref(n->data);
 
-	metadata_delete_all(mc);
+        metadata_delete_all(mc);
 
-	mowgli_patricia_delete(mclist, mc->name);
+        mowgli_patricia_delete(mclist, mc->name);
 
-	strshare_unref(mc->name);
+        strshare_unref(mc->name);
 
-	mowgli_heap_free(mychan_heap, mc);
+        mowgli_heap_free(mychan_heap, mc);
 
-	cnt.mychan--;
+        cnt.mychan--;
 }
 
 mychan_t *mychan_add(char *name)
 {
-	mychan_t *mc;
+        mychan_t *mc;
 
-	return_val_if_fail(name != NULL, NULL);
-	return_val_if_fail((mc = mychan_find(name)) == NULL, mc);
+        return_val_if_fail(name != NULL, NULL);
+        return_val_if_fail((mc = mychan_find(name)) == NULL, mc);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "mychan_add(): %s", name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "mychan_add(): %s", name);
 
-	mc = mowgli_heap_alloc(mychan_heap);
+        mc = mowgli_heap_alloc(mychan_heap);
 
-	object_init(object(mc), name, (destructor_t) mychan_delete);
-	mc->name = strshare_get(name);
-	mc->registered = CURRTIME;
-	mc->chan = channel_find(name);
+        object_init(object(mc), name, (destructor_t) mychan_delete);
+        mc->name = strshare_get(name);
+        mc->registered = CURRTIME;
+        mc->chan = channel_find(name);
 
-	if (mc->chan != NULL)
-		mc->chan->mychan = mc;
+        if (mc->chan != NULL)
+                mc->chan->mychan = mc;
 
-	mowgli_patricia_add(mclist, mc->name, mc);
+        mowgli_patricia_add(mclist, mc->name, mc);
 
-	cnt.mychan++;
+        cnt.mychan++;
 
-	return mc;
+        return mc;
 }
 
 
@@ -1017,72 +982,68 @@ mychan_t *mychan_add(char *name)
  * inappropriate drops. -- jilles */
 bool mychan_isused(mychan_t *mc)
 {
-	mowgli_node_t *n;
-	channel_t *c;
-	chanuser_t *cu;
+        mowgli_node_t *n;
+        channel_t *c;
+        chanuser_t *cu;
 
-	return_val_if_fail(mc != NULL, false);
+        return_val_if_fail(mc != NULL, false);
 
-	c = mc->chan;
-	if (c == NULL)
-		return false;
-	MOWGLI_ITER_FOREACH(n, c->members.head)
-	{
-		cu = n->data;
-		if (chanacs_user_flags(mc, cu->user) & CA_USEDUPDATE)
-			return true;
-	}
-	return false;
+        c = mc->chan;
+        if (c == NULL)
+                return false;
+        MOWGLI_ITER_FOREACH(n, c->members.head) {
+                cu = n->data;
+                if (chanacs_user_flags(mc, cu->user) & CA_USEDUPDATE)
+                        return true;
+        }
+        return false;
 }
 
 unsigned int mychan_num_founders(mychan_t *mc)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
-	unsigned int count = 0;
+        mowgli_node_t *n;
+        chanacs_t *ca;
+        unsigned int count = 0;
 
-	return_val_if_fail(mc != NULL, 0);
+        return_val_if_fail(mc != NULL, 0);
 
-	MOWGLI_ITER_FOREACH(n, mc->chanacs.head)
-	{
-		ca = n->data;
-		if (ca->entity != NULL && ca->level & CA_FOUNDER)
-			count++;
-	}
-	return count;
+        MOWGLI_ITER_FOREACH(n, mc->chanacs.head) {
+                ca = n->data;
+                if (ca->entity != NULL && ca->level & CA_FOUNDER)
+                        count++;
+        }
+        return count;
 }
 
 const char *mychan_founder_names(mychan_t *mc)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
-	static char names[512];
+        mowgli_node_t *n;
+        chanacs_t *ca;
+        static char names[512];
 
-	return_val_if_fail(mc != NULL, NULL);
+        return_val_if_fail(mc != NULL, NULL);
 
-	names[0] = '\0';
-	MOWGLI_ITER_FOREACH(n, mc->chanacs.head)
-	{
-		ca = n->data;
-		if (ca->entity != NULL && ca->level & CA_FOUNDER)
-		{
-			if (names[0] != '\0')
-				mowgli_strlcat(names, ", ", sizeof names);
-			mowgli_strlcat(names, entity(ca->entity)->name, sizeof names);
-		}
-	}
-	return names;
+        names[0] = '\0';
+        MOWGLI_ITER_FOREACH(n, mc->chanacs.head) {
+                ca = n->data;
+                if (ca->entity != NULL && ca->level & CA_FOUNDER) {
+                        if (names[0] != '\0')
+                                mowgli_strlcat(names, ", ", sizeof names);
+                        mowgli_strlcat(names, entity(ca->entity)->name, sizeof names);
+                }
+        }
+        return names;
 }
 
 static unsigned int add_auto_flags(unsigned int flags)
 {
-	if (flags & CA_OP)
-		flags |= CA_AUTOOP;
-	if (flags & CA_HALFOP)
-		flags |= CA_AUTOHALFOP;
-	if (flags & CA_VOICE)
-		flags |= CA_AUTOVOICE;
-	return flags;
+        if (flags & CA_OP)
+                flags |= CA_AUTOOP;
+        if (flags & CA_HALFOP)
+                flags |= CA_AUTOHALFOP;
+        if (flags & CA_VOICE)
+                flags |= CA_AUTOVOICE;
+        return flags;
 }
 
 /* When to consider a user recently seen */
@@ -1091,55 +1052,52 @@ static unsigned int add_auto_flags(unsigned int flags)
 /* Find a user fulfilling the conditions who can take another channel */
 myuser_t *mychan_pick_candidate(mychan_t *mc, unsigned int minlevel)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
-	myentity_t *mt, *hi_mt;
-	unsigned int level, hi_level;
-	bool recent_ok = false;
-	bool hi_recent_ok = false;
+        mowgli_node_t *n;
+        chanacs_t *ca;
+        myentity_t *mt, *hi_mt;
+        unsigned int level, hi_level;
+        bool recent_ok = false;
+        bool hi_recent_ok = false;
 
-	return_val_if_fail(mc != NULL, NULL);
+        return_val_if_fail(mc != NULL, NULL);
 
-	hi_mt = NULL;
-	hi_level = 0;
-	MOWGLI_ITER_FOREACH(n, mc->chanacs.head)
-	{
-		ca = n->data;
-		if (ca->level & CA_AKICK)
-			continue;
-		mt = ca->entity;
-		if (mt == NULL || ca->level & CA_FOUNDER)
-			continue;
-		if ((ca->level & minlevel) != minlevel)
-			continue;
+        hi_mt = NULL;
+        hi_level = 0;
+        MOWGLI_ITER_FOREACH(n, mc->chanacs.head) {
+                ca = n->data;
+                if (ca->level & CA_AKICK)
+                        continue;
+                mt = ca->entity;
+                if (mt == NULL || ca->level & CA_FOUNDER)
+                        continue;
+                if ((ca->level & minlevel) != minlevel)
+                        continue;
 
-		/* now have a user with requested flags */
-		if (isuser(mt))
-			recent_ok = MOWGLI_LIST_LENGTH(&user(mt)->logins) > 0 ||
-				CURRTIME - user(mt)->lastlogin < RECENTLY_SEEN;
+                /* now have a user with requested flags */
+                if (isuser(mt))
+                        recent_ok = MOWGLI_LIST_LENGTH(&user(mt)->logins) > 0 ||
+                                    CURRTIME - user(mt)->lastlogin < RECENTLY_SEEN;
 
-		level = add_auto_flags(ca->level);
-		/* compare with previous candidate, this user must be
-		 * "better" to beat the previous. this means that ties
-		 * are broken in favour of the user added first.
-		 */
-		if (hi_mt != NULL)
-		{
-			/* previous candidate has flags this user doesn't? */
-			if (hi_level & ~level)
-				continue;
-			/* if equal flags, recent_ok must be better */
-			if (hi_level == level && (!recent_ok || hi_recent_ok))
-				continue;
-		}
-		if (myentity_can_register_channel(mt))
-		{
-			hi_mt = mt;
-			hi_level = level;
-			hi_recent_ok = recent_ok;
-		}
-	}
-	return user(hi_mt);
+                level = add_auto_flags(ca->level);
+                /* compare with previous candidate, this user must be
+                 * "better" to beat the previous. this means that ties
+                 * are broken in favour of the user added first.
+                 */
+                if (hi_mt != NULL) {
+                        /* previous candidate has flags this user doesn't? */
+                        if (hi_level & ~level)
+                                continue;
+                        /* if equal flags, recent_ok must be better */
+                        if (hi_level == level && (!recent_ok || hi_recent_ok))
+                                continue;
+                }
+                if (myentity_can_register_channel(mt)) {
+                        hi_mt = mt;
+                        hi_level = level;
+                        hi_recent_ok = recent_ok;
+                }
+        }
+        return user(hi_mt);
 }
 
 /* Pick a suitable successor
@@ -1149,188 +1107,173 @@ myuser_t *mychan_pick_candidate(mychan_t *mc, unsigned int minlevel)
  * -- jilles */
 myuser_t *mychan_pick_successor(mychan_t *mc)
 {
-	myuser_t *mu;
-	hook_channel_succession_req_t req;
+        myuser_t *mu;
+        hook_channel_succession_req_t req;
 
-	return_val_if_fail(mc != NULL, NULL);
+        return_val_if_fail(mc != NULL, NULL);
 
-	/* allow a hook to override/augment the succession. */
-	req.mc = mc;
-	req.mu = NULL;
-	hook_call_channel_pick_successor(&req);
-	if (req.mu != NULL)
-		return req.mu;
+        /* allow a hook to override/augment the succession. */
+        req.mc = mc;
+        req.mu = NULL;
+        hook_call_channel_pick_successor(&req);
+        if (req.mu != NULL)
+                return req.mu;
 
-	/* value +R higher than other flags
-	 * (old successor has this, but not sop, and help file mentions this)
-	 */
-	mu = mychan_pick_candidate(mc, CA_RECOVER);
-	if (mu != NULL)
-		return mu;
-	/* +f is also a powerful flag */
-	mu = mychan_pick_candidate(mc, CA_FLAGS);
-	if (mu != NULL)
-		return mu;
-	/* I guess +q means something */
-	if (ca_all & CA_USEOWNER)
-	{
-		mu = mychan_pick_candidate(mc, CA_USEOWNER | CA_AUTOOP);
-		if (mu != NULL)
-			return mu;
-	}
-	/* an op perhaps? */
-	mu = mychan_pick_candidate(mc, CA_OP);
-	if (mu != NULL)
-		return mu;
-	/* just a user with access */
-	return mychan_pick_candidate(mc, 0);
+        /* value +R higher than other flags
+         * (old successor has this, but not sop, and help file mentions this)
+         */
+        mu = mychan_pick_candidate(mc, CA_RECOVER);
+        if (mu != NULL)
+                return mu;
+        /* +f is also a powerful flag */
+        mu = mychan_pick_candidate(mc, CA_FLAGS);
+        if (mu != NULL)
+                return mu;
+        /* I guess +q means something */
+        if (ca_all & CA_USEOWNER) {
+                mu = mychan_pick_candidate(mc, CA_USEOWNER | CA_AUTOOP);
+                if (mu != NULL)
+                        return mu;
+        }
+        /* an op perhaps? */
+        mu = mychan_pick_candidate(mc, CA_OP);
+        if (mu != NULL)
+                return mu;
+        /* just a user with access */
+        return mychan_pick_candidate(mc, 0);
 }
 
 const char *mychan_get_mlock(mychan_t *mc)
 {
-	static char buf[BUFSIZE];
-	char params[BUFSIZE];
-	metadata_t *md;
-	char *p, *q, *qq;
-	int dir;
+        static char buf[BUFSIZE];
+        char params[BUFSIZE];
+        metadata_t *md;
+        char *p, *q, *qq;
+        int dir;
 
-	return_val_if_fail(mc != NULL, NULL);
+        return_val_if_fail(mc != NULL, NULL);
 
-	*buf = 0;
-	*params = 0;
+        *buf = 0;
+        *params = 0;
 
-	md = metadata_find(mc, "private:mlockext");
-	if (md != NULL && strlen(md->value) > 450)
-		md = NULL;
+        md = metadata_find(mc, "private:mlockext");
+        if (md != NULL && strlen(md->value) > 450)
+                md = NULL;
 
-	dir = MTYPE_NUL;
+        dir = MTYPE_NUL;
 
-	if (mc->mlock_on)
-	{
-		if (dir != MTYPE_ADD)
-			dir = MTYPE_ADD, strcat(buf, "+");
-		strcat(buf, flags_to_string(mc->mlock_on));
-	}
+        if (mc->mlock_on) {
+                if (dir != MTYPE_ADD)
+                        dir = MTYPE_ADD, strcat(buf, "+");
+                strcat(buf, flags_to_string(mc->mlock_on));
+        }
 
-	if (mc->mlock_limit)
-	{
-		if (dir != MTYPE_ADD)
-			dir = MTYPE_ADD, strcat(buf, "+");
-		strcat(buf, "l");
-		strcat(params, " ");
-		strcat(params, number_to_string(mc->mlock_limit));
-	}
+        if (mc->mlock_limit) {
+                if (dir != MTYPE_ADD)
+                        dir = MTYPE_ADD, strcat(buf, "+");
+                strcat(buf, "l");
+                strcat(params, " ");
+                strcat(params, number_to_string(mc->mlock_limit));
+        }
 
-	if (mc->mlock_key)
-	{
-		if (dir != MTYPE_ADD)
-			dir = MTYPE_ADD, strcat(buf, "+");
-		strcat(buf, "k");
-		strcat(params, " *");
-	}
+        if (mc->mlock_key) {
+                if (dir != MTYPE_ADD)
+                        dir = MTYPE_ADD, strcat(buf, "+");
+                strcat(buf, "k");
+                strcat(params, " *");
+        }
 
-	if (md)
-	{
-		p = md->value;
-		q = buf + strlen(buf);
-		while (*p != '\0')
-		{
-			if (p[1] != ' ' && p[1] != '\0')
-			{
-				if (dir != MTYPE_ADD)
-					dir = MTYPE_ADD, *q++ = '+';
-				*q++ = *p++;
-				strcat(params, " ");
-				qq = params + strlen(params);
-				while (*p != '\0' && *p != ' ')
-					*qq++ = *p++;
-				*qq = '\0';
-			}
-			else
-			{
-				p++;
-				while (*p != '\0' && *p != ' ')
-					p++;
-			}
-			while (*p == ' ')
-				p++;
-		}
-		*q = '\0';
-	}
+        if (md) {
+                p = md->value;
+                q = buf + strlen(buf);
+                while (*p != '\0') {
+                        if (p[1] != ' ' && p[1] != '\0') {
+                                if (dir != MTYPE_ADD)
+                                        dir = MTYPE_ADD, *q++ = '+';
+                                *q++ = *p++;
+                                strcat(params, " ");
+                                qq = params + strlen(params);
+                                while (*p != '\0' && *p != ' ')
+                                        *qq++ = *p++;
+                                *qq = '\0';
+                        } else {
+                                p++;
+                                while (*p != '\0' && *p != ' ')
+                                        p++;
+                        }
+                        while (*p == ' ')
+                                p++;
+                }
+                *q = '\0';
+        }
 
-	if (mc->mlock_off)
-	{
-		if (dir != MTYPE_DEL)
-			dir = MTYPE_DEL, strcat(buf, "-");
-		strcat(buf, flags_to_string(mc->mlock_off));
-		if (mc->mlock_off & CMODE_LIMIT)
-			strcat(buf, "l");
-		if (mc->mlock_off & CMODE_KEY)
-			strcat(buf, "k");
-	}
+        if (mc->mlock_off) {
+                if (dir != MTYPE_DEL)
+                        dir = MTYPE_DEL, strcat(buf, "-");
+                strcat(buf, flags_to_string(mc->mlock_off));
+                if (mc->mlock_off & CMODE_LIMIT)
+                        strcat(buf, "l");
+                if (mc->mlock_off & CMODE_KEY)
+                        strcat(buf, "k");
+        }
 
-	if (md)
-	{
-		p = md->value;
-		q = buf + strlen(buf);
-		while (*p != '\0')
-		{
-			if (p[1] == ' ' || p[1] == '\0')
-			{
-				if (dir != MTYPE_DEL)
-					dir = MTYPE_DEL, *q++ = '-';
-				*q++ = *p;
-			}
-			p++;
-			while (*p != '\0' && *p != ' ')
-				p++;
-			while (*p == ' ')
-				p++;
-		}
-		*q = '\0';
-	}
+        if (md) {
+                p = md->value;
+                q = buf + strlen(buf);
+                while (*p != '\0') {
+                        if (p[1] == ' ' || p[1] == '\0') {
+                                if (dir != MTYPE_DEL)
+                                        dir = MTYPE_DEL, *q++ = '-';
+                                *q++ = *p;
+                        }
+                        p++;
+                        while (*p != '\0' && *p != ' ')
+                                p++;
+                        while (*p == ' ')
+                                p++;
+                }
+                *q = '\0';
+        }
 
-	mowgli_strlcat(buf, params, BUFSIZE);
+        mowgli_strlcat(buf, params, BUFSIZE);
 
-	if (*buf == '\0')
-		mowgli_strlcpy(buf, "+", BUFSIZE);
+        if (*buf == '\0')
+                mowgli_strlcpy(buf, "+", BUFSIZE);
 
-	return buf;
+        return buf;
 }
 
 const char *mychan_get_sts_mlock(mychan_t *mc)
 {
-	static char mlock[BUFSIZE];
-	metadata_t *md;
+        static char mlock[BUFSIZE];
+        metadata_t *md;
 
-	return_val_if_fail(mc != NULL, NULL);
+        return_val_if_fail(mc != NULL, NULL);
 
-	mlock[0] = '\0';
+        mlock[0] = '\0';
 
-	if (mc->mlock_on)
-		mowgli_strlcat(mlock, flags_to_string(mc->mlock_on), sizeof(mlock));
-	if (mc->mlock_off)
-		mowgli_strlcat(mlock, flags_to_string(mc->mlock_off), sizeof(mlock));
-	if (mc->mlock_limit || mc->mlock_off & CMODE_LIMIT)
-		mowgli_strlcat(mlock, "l", sizeof(mlock));
-	if (mc->mlock_key || mc->mlock_off & CMODE_KEY)
-		mowgli_strlcat(mlock, "k", sizeof(mlock));
-	if ((md = metadata_find(mc, "private:mlockext")))
-	{
-		char *p = md->value;
-		char *q = mlock + strlen(mlock);
-		while (*p != '\0')
-		{
-			*q++ = *p++;
-			while (*p != ' ' && *p != '\0')
-				p++;
-			while (*p == ' ')
-				p++;
-		}
-		*q = '\0';
-	}
+        if (mc->mlock_on)
+                mowgli_strlcat(mlock, flags_to_string(mc->mlock_on), sizeof(mlock));
+        if (mc->mlock_off)
+                mowgli_strlcat(mlock, flags_to_string(mc->mlock_off), sizeof(mlock));
+        if (mc->mlock_limit || mc->mlock_off & CMODE_LIMIT)
+                mowgli_strlcat(mlock, "l", sizeof(mlock));
+        if (mc->mlock_key || mc->mlock_off & CMODE_KEY)
+                mowgli_strlcat(mlock, "k", sizeof(mlock));
+        if ((md = metadata_find(mc, "private:mlockext"))) {
+                char *p = md->value;
+                char *q = mlock + strlen(mlock);
+                while (*p != '\0') {
+                        *q++ = *p++;
+                        while (*p != ' ' && *p != '\0')
+                                p++;
+                        while (*p == ' ')
+                                p++;
+                }
+                *q = '\0';
+        }
 
-	return mlock;
+        return mlock;
 }
 
 /*****************
@@ -1340,34 +1283,33 @@ const char *mychan_get_sts_mlock(mychan_t *mc)
 /* private destructor for chanacs_t */
 static void chanacs_delete(chanacs_t *ca)
 {
-	return_if_fail(ca != NULL);
-	return_if_fail(ca->mychan != NULL);
+        return_if_fail(ca != NULL);
+        return_if_fail(ca->mychan != NULL);
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "chanacs_delete(): %s -> %s [%s]", ca->mychan->name,
-			ca->entity != NULL ? entity(ca->entity)->name : ca->host,
-			ca->entity != NULL ? "entity" : "hostmask");
-	mowgli_node_delete(&ca->cnode, &ca->mychan->chanacs);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "chanacs_delete(): %s -> %s [%s]", ca->mychan->name,
+                     ca->entity != NULL ? entity(ca->entity)->name : ca->host,
+                     ca->entity != NULL ? "entity" : "hostmask");
+        mowgli_node_delete(&ca->cnode, &ca->mychan->chanacs);
 
-	if (ca->entity != NULL)
-	{
-		mowgli_node_delete(&ca->unode, &ca->entity->chanacs);
+        if (ca->entity != NULL) {
+                mowgli_node_delete(&ca->unode, &ca->entity->chanacs);
 
-		if (isdynamic(ca->entity))
-			object_unref(ca->entity);
-	}
+                if (isdynamic(ca->entity))
+                        object_unref(ca->entity);
+        }
 
-	if (ca->setter != NULL)
-		strshare_unref(ca->setter);
+        if (ca->setter != NULL)
+                strshare_unref(ca->setter);
 
-	metadata_delete_all(ca);
+        metadata_delete_all(ca);
 
-	if (ca->host != NULL)
-		free(ca->host);
+        if (ca->host != NULL)
+                free(ca->host);
 
-	mowgli_heap_free(chanacs_heap, ca);
+        mowgli_heap_free(chanacs_heap, ca);
 
-	cnt.chanacs--;
+        cnt.chanacs--;
 }
 
 /*
@@ -1389,35 +1331,34 @@ static void chanacs_delete(chanacs_t *ca)
  */
 chanacs_t *chanacs_add(mychan_t *mychan, myentity_t *mt, unsigned int level, time_t ts, myentity_t *setter)
 {
-	chanacs_t *ca;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && mt != NULL, NULL);
+        return_val_if_fail(mychan != NULL && mt != NULL, NULL);
 
-	if (*mychan->name != '#')
-	{
-		slog(LG_DEBUG, "chanacs_add(): got non #channel: %s", mychan->name);
-		return NULL;
-	}
+        if (*mychan->name != '#') {
+                slog(LG_DEBUG, "chanacs_add(): got non #channel: %s", mychan->name);
+                return NULL;
+        }
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "chanacs_add(): %s -> %s", mychan->name, mt->name);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "chanacs_add(): %s -> %s", mychan->name, mt->name);
 
-	ca = mowgli_heap_alloc(chanacs_heap);
+        ca = mowgli_heap_alloc(chanacs_heap);
 
-	object_init(object(ca), mt->name, (destructor_t) chanacs_delete);
-	ca->mychan = mychan;
-	ca->entity = isdynamic(mt) ? object_ref(mt) : mt;
-	ca->host = NULL;
-	ca->level = level & ca_all;
-	ca->tmodified = ts;
-	ca->setter = setter != NULL ? strshare_ref(setter->name) : NULL;
+        object_init(object(ca), mt->name, (destructor_t) chanacs_delete);
+        ca->mychan = mychan;
+        ca->entity = isdynamic(mt) ? object_ref(mt) : mt;
+        ca->host = NULL;
+        ca->level = level & ca_all;
+        ca->tmodified = ts;
+        ca->setter = setter != NULL ? strshare_ref(setter->name) : NULL;
 
-	mowgli_node_add(ca, &ca->cnode, &mychan->chanacs);
-	mowgli_node_add(ca, &ca->unode, &mt->chanacs);
+        mowgli_node_add(ca, &ca->cnode, &mychan->chanacs);
+        mowgli_node_add(ca, &ca->unode, &mt->chanacs);
 
-	cnt.chanacs++;
+        cnt.chanacs++;
 
-	return ca;
+        return ca;
 }
 
 /*
@@ -1439,323 +1380,299 @@ chanacs_t *chanacs_add(mychan_t *mychan, myentity_t *mt, unsigned int level, tim
  */
 chanacs_t *chanacs_add_host(mychan_t *mychan, const char *host, unsigned int level, time_t ts, myentity_t *setter)
 {
-	chanacs_t *ca;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && host != NULL, NULL);
+        return_val_if_fail(mychan != NULL && host != NULL, NULL);
 
-	if (*mychan->name != '#')
-	{
-		slog(LG_DEBUG, "chanacs_add_host(): got non #channel: %s", mychan->name);
-		return NULL;
-	}
+        if (*mychan->name != '#') {
+                slog(LG_DEBUG, "chanacs_add_host(): got non #channel: %s", mychan->name);
+                return NULL;
+        }
 
-	if (!(runflags & RF_STARTING))
-		slog(LG_DEBUG, "chanacs_add_host(): %s -> %s", mychan->name, host);
+        if (!(runflags & RF_STARTING))
+                slog(LG_DEBUG, "chanacs_add_host(): %s -> %s", mychan->name, host);
 
-	ca = mowgli_heap_alloc(chanacs_heap);
+        ca = mowgli_heap_alloc(chanacs_heap);
 
-	object_init(object(ca), host, (destructor_t) chanacs_delete);
-	ca->mychan = mychan;
-	ca->entity = NULL;
-	ca->host = sstrdup(host);
-	ca->level = level & ca_all;
-	ca->tmodified = ts;
-	ca->setter = setter != NULL ? strshare_ref(setter->name) : NULL;
+        object_init(object(ca), host, (destructor_t) chanacs_delete);
+        ca->mychan = mychan;
+        ca->entity = NULL;
+        ca->host = sstrdup(host);
+        ca->level = level & ca_all;
+        ca->tmodified = ts;
+        ca->setter = setter != NULL ? strshare_ref(setter->name) : NULL;
 
-	mowgli_node_add(ca, &ca->cnode, &mychan->chanacs);
+        mowgli_node_add(ca, &ca->cnode, &mychan->chanacs);
 
-	cnt.chanacs++;
+        cnt.chanacs++;
 
-	return ca;
+        return ca;
 }
 
 chanacs_t *chanacs_find(mychan_t *mychan, myentity_t *mt, unsigned int level)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
+        mowgli_node_t *n;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && mt != NULL, NULL);
+        return_val_if_fail(mychan != NULL && mt != NULL, NULL);
 
-	if ((ca = chanacs_find_literal(mychan, mt, level)) != NULL)
-		return ca;
+        if ((ca = chanacs_find_literal(mychan, mt, level)) != NULL)
+                return ca;
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		entity_chanacs_validation_vtable_t *vt;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                entity_chanacs_validation_vtable_t *vt;
 
-		ca = (chanacs_t *)n->data;
+                ca = (chanacs_t *)n->data;
 
-		if (ca->entity == NULL)
-			continue;
+                if (ca->entity == NULL)
+                        continue;
 
-		vt = myentity_get_chanacs_validator(ca->entity);
-		if (level != 0x0)
-		{
-			if ((vt->match_entity(ca, mt) != NULL) && ((ca->level & level) == level))
-				return ca;
-		}
-		else if (vt->match_entity(ca, mt) != NULL)
-			return ca;
-	}
+                vt = myentity_get_chanacs_validator(ca->entity);
+                if (level != 0x0) {
+                        if ((vt->match_entity(ca, mt) != NULL) && ((ca->level & level) == level))
+                                return ca;
+                } else if (vt->match_entity(ca, mt) != NULL)
+                        return ca;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 unsigned int chanacs_entity_flags(mychan_t *mychan, myentity_t *mt)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
-	unsigned int result = 0;
+        mowgli_node_t *n;
+        chanacs_t *ca;
+        unsigned int result = 0;
 
-	return_val_if_fail(mychan != NULL && mt != NULL, 0);
+        return_val_if_fail(mychan != NULL && mt != NULL, 0);
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		entity_chanacs_validation_vtable_t *vt;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                entity_chanacs_validation_vtable_t *vt;
 
-		ca = (chanacs_t *)n->data;
+                ca = (chanacs_t *)n->data;
 
-		if (ca->entity == NULL)
-			continue;
-		if (ca->entity == mt)
-			result |= ca->level;
-		else
-		{
-			vt = myentity_get_chanacs_validator(ca->entity);
-			if (vt->match_entity(ca, mt) != NULL)
-				result |= ca->level;
-		}
-	}
+                if (ca->entity == NULL)
+                        continue;
+                if (ca->entity == mt)
+                        result |= ca->level;
+                else {
+                        vt = myentity_get_chanacs_validator(ca->entity);
+                        if (vt->match_entity(ca, mt) != NULL)
+                                result |= ca->level;
+                }
+        }
 
-	slog(LG_DEBUG, "chanacs_entity_flags(%s, %s): return %s", mychan->name, mt->name, bitmask_to_flags(result));
+        slog(LG_DEBUG, "chanacs_entity_flags(%s, %s): return %s", mychan->name, mt->name, bitmask_to_flags(result));
 
-	return result;
+        return result;
 }
 
 chanacs_t *chanacs_find_literal(mychan_t *mychan, myentity_t *mt, unsigned int level)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
+        mowgli_node_t *n;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && mt != NULL, NULL);
+        return_val_if_fail(mychan != NULL && mt != NULL, NULL);
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		ca = (chanacs_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                ca = (chanacs_t *)n->data;
 
-		if (level != 0x0)
-		{
-			if (ca->entity == mt && ((ca->level & level) == level))
-				return ca;
-		}
-		else if (ca->entity == mt)
-			return ca;
-	}
+                if (level != 0x0) {
+                        if (ca->entity == mt && ((ca->level & level) == level))
+                                return ca;
+                } else if (ca->entity == mt)
+                        return ca;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 chanacs_t *chanacs_find_host(mychan_t *mychan, const char *host, unsigned int level)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
+        mowgli_node_t *n;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && host != NULL, NULL);
+        return_val_if_fail(mychan != NULL && host != NULL, NULL);
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		ca = (chanacs_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                ca = (chanacs_t *)n->data;
 
-		if (level != 0x0)
-		{
-			if ((ca->entity == NULL) && (!match(ca->host, host)) && ((ca->level & level) == level))
-				return ca;
-		}
-		else if ((ca->entity == NULL) && (!match(ca->host, host)))
-			return ca;
-	}
+                if (level != 0x0) {
+                        if ((ca->entity == NULL) && (!match(ca->host, host)) && ((ca->level & level) == level))
+                                return ca;
+                } else if ((ca->entity == NULL) && (!match(ca->host, host)))
+                        return ca;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 unsigned int chanacs_host_flags(mychan_t *mychan, const char *host)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
-	unsigned int result = 0;
+        mowgli_node_t *n;
+        chanacs_t *ca;
+        unsigned int result = 0;
 
-	return_val_if_fail(mychan != NULL && host != NULL, 0);
+        return_val_if_fail(mychan != NULL && host != NULL, 0);
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		ca = (chanacs_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                ca = (chanacs_t *)n->data;
 
-		if (ca->entity == NULL && !match(ca->host, host))
-			result |= ca->level;
-	}
+                if (ca->entity == NULL && !match(ca->host, host))
+                        result |= ca->level;
+        }
 
-	return result;
+        return result;
 }
 
 chanacs_t *chanacs_find_host_literal(mychan_t *mychan, const char *host, unsigned int level)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
+        mowgli_node_t *n;
+        chanacs_t *ca;
 
-	if ((!mychan) || (!host))
-		return NULL;
+        if ((!mychan) || (!host))
+                return NULL;
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		ca = (chanacs_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                ca = (chanacs_t *)n->data;
 
-		if (level != 0x0)
-		{
-			if ((ca->entity == NULL) && (!strcasecmp(ca->host, host)) && ((ca->level & level) == level))
-				return ca;
-		}
-		else if ((ca->entity == NULL) && (!strcasecmp(ca->host, host)))
-			return ca;
-	}
+                if (level != 0x0) {
+                        if ((ca->entity == NULL) && (!strcasecmp(ca->host, host)) && ((ca->level & level) == level))
+                                return ca;
+                } else if ((ca->entity == NULL) && (!strcasecmp(ca->host, host)))
+                        return ca;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 chanacs_t *chanacs_find_host_by_user(mychan_t *mychan, user_t *u, unsigned int level)
 {
-	mowgli_node_t *n;
-	chanacs_t *ca;
+        mowgli_node_t *n;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && u != NULL, 0);
+        return_val_if_fail(mychan != NULL && u != NULL, 0);
 
-	for (n = next_matching_host_chanacs(mychan, u, mychan->chanacs.head); n != NULL; n = next_matching_host_chanacs(mychan, u, n->next))
-	{
-		ca = n->data;
-		if ((ca->level & level) == level)
-			return ca;
-	}
+        for (n = next_matching_host_chanacs(mychan, u, mychan->chanacs.head); n != NULL; n = next_matching_host_chanacs(mychan, u, n->next)) {
+                ca = n->data;
+                if ((ca->level & level) == level)
+                        return ca;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 static unsigned int chanacs_host_flags_by_user(mychan_t *mychan, user_t *u)
 {
-	mowgli_node_t *n;
-	unsigned int result = 0;
-	chanacs_t *ca;
+        mowgli_node_t *n;
+        unsigned int result = 0;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && u != NULL, 0);
+        return_val_if_fail(mychan != NULL && u != NULL, 0);
 
-	for (n = next_matching_host_chanacs(mychan, u, mychan->chanacs.head); n != NULL; n = next_matching_host_chanacs(mychan, u, n->next))
-	{
-		ca = n->data;
-		result |= ca->level;
-	}
+        for (n = next_matching_host_chanacs(mychan, u, mychan->chanacs.head); n != NULL; n = next_matching_host_chanacs(mychan, u, n->next)) {
+                ca = n->data;
+                result |= ca->level;
+        }
 
-	slog(LG_DEBUG, "chanacs_host_flags_by_user(%s, %s): return %s", mychan->name, u->nick, bitmask_to_flags(result));
+        slog(LG_DEBUG, "chanacs_host_flags_by_user(%s, %s): return %s", mychan->name, u->nick, bitmask_to_flags(result));
 
-	return result;
+        return result;
 }
 
 chanacs_t *chanacs_find_by_mask(mychan_t *mychan, const char *mask, unsigned int level)
 {
-	myentity_t *mt;
-	chanacs_t *ca;
+        myentity_t *mt;
+        chanacs_t *ca;
 
-	return_val_if_fail(mychan != NULL && mask != NULL, NULL);
+        return_val_if_fail(mychan != NULL && mask != NULL, NULL);
 
-	mt = myentity_find(mask);
-	if (mt != NULL)
-	{
-		ca = chanacs_find_literal(mychan, mt, level);
+        mt = myentity_find(mask);
+        if (mt != NULL) {
+                ca = chanacs_find_literal(mychan, mt, level);
 
-		if (ca)
-			return ca;
-	}
+                if (ca)
+                        return ca;
+        }
 
-	return chanacs_find_host_literal(mychan, mask, level);
+        return chanacs_find_host_literal(mychan, mask, level);
 }
 
 bool chanacs_user_has_flag(mychan_t *mychan, user_t *u, unsigned int level)
 {
-	myentity_t *mt;
+        myentity_t *mt;
 
-	return_val_if_fail(mychan != NULL && u != NULL, false);
+        return_val_if_fail(mychan != NULL && u != NULL, false);
 
-	mt = entity(u->myuser);
-	if (mt != NULL)
-	{
-		if (chanacs_entity_has_flag(mychan, mt, level))
-			return true;
-	}
+        mt = entity(u->myuser);
+        if (mt != NULL) {
+                if (chanacs_entity_has_flag(mychan, mt, level))
+                        return true;
+        }
 
-	if (chanacs_user_flags(mychan, u) & level)
-		return true;
+        if (chanacs_user_flags(mychan, u) & level)
+                return true;
 
-	return false;
+        return false;
 }
 
 static unsigned int chanacs_entity_flags_by_user(mychan_t *mychan, user_t *u)
 {
-	mowgli_node_t *n;
-	unsigned int result = 0;
+        mowgli_node_t *n;
+        unsigned int result = 0;
 
-	return_val_if_fail(mychan != NULL, 0);
-	return_val_if_fail(u != NULL, 0);
+        return_val_if_fail(mychan != NULL, 0);
+        return_val_if_fail(u != NULL, 0);
 
-	MOWGLI_ITER_FOREACH(n, mychan->chanacs.head)
-	{
-		chanacs_t *ca = n->data;
-		myentity_t *mt;
-		entity_chanacs_validation_vtable_t *vt;
+        MOWGLI_ITER_FOREACH(n, mychan->chanacs.head) {
+                chanacs_t *ca = n->data;
+                myentity_t *mt;
+                entity_chanacs_validation_vtable_t *vt;
 
-		if (ca->entity == NULL)
-			continue;
+                if (ca->entity == NULL)
+                        continue;
 
-		mt = ca->entity;
-		vt = myentity_get_chanacs_validator(mt);
+                mt = ca->entity;
+                vt = myentity_get_chanacs_validator(mt);
 
-		if (vt->match_user && vt->match_user(ca, u) != NULL)
-			result |= ca->level;
-	}
+                if (vt->match_user && vt->match_user(ca, u) != NULL)
+                        result |= ca->level;
+        }
 
-	slog(LG_DEBUG, "chanacs_entity_flags_by_user(%s, %s): return %s", mychan->name, u->nick, bitmask_to_flags(result));
+        slog(LG_DEBUG, "chanacs_entity_flags_by_user(%s, %s): return %s", mychan->name, u->nick, bitmask_to_flags(result));
 
-	return result;
+        return result;
 }
 
 unsigned int chanacs_user_flags(mychan_t *mychan, user_t *u)
 {
-	myentity_t *mt;
-	unsigned int result = 0;
+        myentity_t *mt;
+        unsigned int result = 0;
 
-	return_val_if_fail(mychan != NULL && u != NULL, 0);
+        return_val_if_fail(mychan != NULL && u != NULL, 0);
 
-	mt = entity(u->myuser);
-	if (mt != NULL)
-		result |= chanacs_entity_flags(mychan, mt);
+        mt = entity(u->myuser);
+        if (mt != NULL)
+                result |= chanacs_entity_flags(mychan, mt);
 
-	result |= chanacs_entity_flags_by_user(mychan, u);
-	result |= chanacs_host_flags_by_user(mychan, u);
+        result |= chanacs_entity_flags_by_user(mychan, u);
+        result |= chanacs_host_flags_by_user(mychan, u);
 
-	slog(LG_DEBUG, "chanacs_user_flags(%s, %s): return %s", mychan->name, u->nick, bitmask_to_flags(result));
+        slog(LG_DEBUG, "chanacs_user_flags(%s, %s): return %s", mychan->name, u->nick, bitmask_to_flags(result));
 
-	return result;
+        return result;
 }
 
 unsigned int chanacs_source_flags(mychan_t *mychan, sourceinfo_t *si)
 {
-	if (si->su != NULL)
-	{
-		return chanacs_user_flags(mychan, si->su);
-	}
-	else
-	{
-		if (entity(si->smu))
-			return chanacs_entity_flags(mychan, entity(si->smu));
-		else
-			return 0;
-	}
+        if (si->su != NULL) {
+                return chanacs_user_flags(mychan, si->su);
+        } else {
+                if (entity(si->smu))
+                        return chanacs_entity_flags(mychan, entity(si->smu));
+                else
+                        return 0;
+        }
 }
 
 /* Look for the chanacs exactly matching mu or host (exactly one of mu and
@@ -1764,29 +1681,26 @@ unsigned int chanacs_source_flags(mychan_t *mychan, sourceinfo_t *si)
  */
 chanacs_t *chanacs_open(mychan_t *mychan, myentity_t *mt, const char *hostmask, bool create, myentity_t *setter)
 {
-	chanacs_t *ca;
+        chanacs_t *ca;
 
-	/* wrt the second assert: only one of mu or hostmask can be not-NULL --nenolod */
-	return_val_if_fail(mychan != NULL, false);
-	return_val_if_fail((mt != NULL && hostmask == NULL) || (mt == NULL && hostmask != NULL), false); 
+        /* wrt the second assert: only one of mu or hostmask can be not-NULL --nenolod */
+        return_val_if_fail(mychan != NULL, false);
+        return_val_if_fail((mt != NULL && hostmask == NULL) || (mt == NULL && hostmask != NULL), false);
 
-	if (mt != NULL)
-	{
-		ca = chanacs_find_literal(mychan, mt, 0);
-		if (ca != NULL)
-			return ca;
-		else if (create)
-			return chanacs_add(mychan, mt, 0, CURRTIME, setter);
-	}
-	else
-	{
-		ca = chanacs_find_host_literal(mychan, hostmask, 0);
-		if (ca != NULL)
-			return ca;
-		else if (create)
-			return chanacs_add_host(mychan, hostmask, 0, CURRTIME, setter);
-	}
-	return NULL;
+        if (mt != NULL) {
+                ca = chanacs_find_literal(mychan, mt, 0);
+                if (ca != NULL)
+                        return ca;
+                else if (create)
+                        return chanacs_add(mychan, mt, 0, CURRTIME, setter);
+        } else {
+                ca = chanacs_find_host_literal(mychan, hostmask, 0);
+                if (ca != NULL)
+                        return ca;
+                else if (create)
+                        return chanacs_add_host(mychan, hostmask, 0, CURRTIME, setter);
+        }
+        return NULL;
 }
 
 /* Change channel access
@@ -1798,37 +1712,37 @@ chanacs_t *chanacs_open(mychan_t *mychan, myentity_t *mt, const char *hostmask, 
  * -- jilles */
 bool chanacs_modify(chanacs_t *ca, unsigned int *addflags, unsigned int *removeflags, unsigned int restrictflags)
 {
-	return_val_if_fail(ca != NULL, false);
-	return_val_if_fail(addflags != NULL && removeflags != NULL, false);
+        return_val_if_fail(ca != NULL, false);
+        return_val_if_fail(addflags != NULL && removeflags != NULL, false);
 
-	*addflags &= ~ca->level;
-	*removeflags &= ca->level & ~*addflags;
-	/* no change? */
-	if ((*addflags | *removeflags) == 0)
-		return true;
-	/* attempting to add bad flag? */
-	if (~restrictflags & *addflags)
-		return false;
-	/* attempting to remove bad flag? */
-	if (~restrictflags & *removeflags)
-		return false;
-	/* attempting to manipulate user with more privs? */
-	if (~restrictflags & ca->level)
-		return false;
-	ca->level = (ca->level | *addflags) & ~*removeflags;
-	ca->tmodified = CURRTIME;
+        *addflags &= ~ca->level;
+        *removeflags &= ca->level & ~*addflags;
+        /* no change? */
+        if ((*addflags | *removeflags) == 0)
+                return true;
+        /* attempting to add bad flag? */
+        if (~restrictflags & *addflags)
+                return false;
+        /* attempting to remove bad flag? */
+        if (~restrictflags & *removeflags)
+                return false;
+        /* attempting to manipulate user with more privs? */
+        if (~restrictflags & ca->level)
+                return false;
+        ca->level = (ca->level | *addflags) & ~*removeflags;
+        ca->tmodified = CURRTIME;
 
-	return true;
+        return true;
 }
 
 /* version that doesn't return the changes made */
 bool chanacs_modify_simple(chanacs_t *ca, unsigned int addflags, unsigned int removeflags)
 {
-	unsigned int a, r;
+        unsigned int a, r;
 
-	a = addflags & ca_all;
-	r = removeflags & ca_all;
-	return chanacs_modify(ca, &a, &r, ca_all);
+        a = addflags & ca_all;
+        r = removeflags & ca_all;
+        return chanacs_modify(ca, &a, &r, ca_all);
 }
 
 /* Change channel access
@@ -1840,288 +1754,265 @@ bool chanacs_modify_simple(chanacs_t *ca, unsigned int addflags, unsigned int re
  * -- jilles */
 bool chanacs_change(mychan_t *mychan, myentity_t *mt, const char *hostmask, unsigned int *addflags, unsigned int *removeflags, unsigned int restrictflags, myentity_t *setter)
 {
-	chanacs_t *ca;
+        chanacs_t *ca;
 
-	/* wrt the second assert: only one of mu or hostmask can be not-NULL --nenolod */
-	return_val_if_fail(mychan != NULL, false);
-	return_val_if_fail((mt != NULL && hostmask == NULL) || (mt == NULL && hostmask != NULL), false); 
-	return_val_if_fail(addflags != NULL && removeflags != NULL, false);
+        /* wrt the second assert: only one of mu or hostmask can be not-NULL --nenolod */
+        return_val_if_fail(mychan != NULL, false);
+        return_val_if_fail((mt != NULL && hostmask == NULL) || (mt == NULL && hostmask != NULL), false);
+        return_val_if_fail(addflags != NULL && removeflags != NULL, false);
 
-	if (mt != NULL)
-	{
-		ca = chanacs_find_literal(mychan, mt, 0);
-		if (ca == NULL)
-		{
-			*removeflags = 0;
-			/* no change? */
-			if ((*addflags | *removeflags) == 0)
-				return true;
-			/* attempting to add bad flag? */
-			if (~restrictflags & *addflags)
-				return false;
-			chanacs_add(mychan, mt, *addflags, CURRTIME, setter);
-		}
-		else
-		{
-			*addflags &= ~ca->level;
-			*removeflags &= ca->level & ~*addflags;
-			/* no change? */
-			if ((*addflags | *removeflags) == 0)
-				return true;
-			/* attempting to add bad flag? */
-			if (~restrictflags & *addflags)
-				return false;
-			/* attempting to remove bad flag? */
-			if (~restrictflags & *removeflags)
-				return false;
-			/* attempting to manipulate user with more privs? */
-			if (~restrictflags & ca->level)
-				return false;
-			ca->level = (ca->level | *addflags) & ~*removeflags;
-			ca->tmodified = CURRTIME;
-			if (ca->level == 0)
-				object_unref(ca);
-		}
-	}
-	else /* hostmask != NULL */
-	{
-		ca = chanacs_find_host_literal(mychan, hostmask, 0);
-		if (ca == NULL)
-		{
-			*removeflags = 0;
-			/* no change? */
-			if ((*addflags | *removeflags) == 0)
-				return true;
-			/* attempting to add bad flag? */
-			if (~restrictflags & *addflags)
-				return false;
-			chanacs_add_host(mychan, hostmask, *addflags, CURRTIME, setter);
-		}
-		else
-		{
-			*addflags &= ~ca->level;
-			*removeflags &= ca->level & ~*addflags;
-			/* no change? */
-			if ((*addflags | *removeflags) == 0)
-				return true;
-			/* attempting to add bad flag? */
-			if (~restrictflags & *addflags)
-				return false;
-			/* attempting to remove bad flag? */
-			if (~restrictflags & *removeflags)
-				return false;
-			/* attempting to manipulate user with more privs? */
-			if (~restrictflags & ca->level)
-				return false;
-			ca->level = (ca->level | *addflags) & ~*removeflags;
-			ca->tmodified = CURRTIME;
-			if (ca->level == 0)
-				object_unref(ca);
-		}
-	}
-	return true;
+        if (mt != NULL) {
+                ca = chanacs_find_literal(mychan, mt, 0);
+                if (ca == NULL) {
+                        *removeflags = 0;
+                        /* no change? */
+                        if ((*addflags | *removeflags) == 0)
+                                return true;
+                        /* attempting to add bad flag? */
+                        if (~restrictflags & *addflags)
+                                return false;
+                        chanacs_add(mychan, mt, *addflags, CURRTIME, setter);
+                } else {
+                        *addflags &= ~ca->level;
+                        *removeflags &= ca->level & ~*addflags;
+                        /* no change? */
+                        if ((*addflags | *removeflags) == 0)
+                                return true;
+                        /* attempting to add bad flag? */
+                        if (~restrictflags & *addflags)
+                                return false;
+                        /* attempting to remove bad flag? */
+                        if (~restrictflags & *removeflags)
+                                return false;
+                        /* attempting to manipulate user with more privs? */
+                        if (~restrictflags & ca->level)
+                                return false;
+                        ca->level = (ca->level | *addflags) & ~*removeflags;
+                        ca->tmodified = CURRTIME;
+                        if (ca->level == 0)
+                                object_unref(ca);
+                }
+        } else { /* hostmask != NULL */
+                ca = chanacs_find_host_literal(mychan, hostmask, 0);
+                if (ca == NULL) {
+                        *removeflags = 0;
+                        /* no change? */
+                        if ((*addflags | *removeflags) == 0)
+                                return true;
+                        /* attempting to add bad flag? */
+                        if (~restrictflags & *addflags)
+                                return false;
+                        chanacs_add_host(mychan, hostmask, *addflags, CURRTIME, setter);
+                } else {
+                        *addflags &= ~ca->level;
+                        *removeflags &= ca->level & ~*addflags;
+                        /* no change? */
+                        if ((*addflags | *removeflags) == 0)
+                                return true;
+                        /* attempting to add bad flag? */
+                        if (~restrictflags & *addflags)
+                                return false;
+                        /* attempting to remove bad flag? */
+                        if (~restrictflags & *removeflags)
+                                return false;
+                        /* attempting to manipulate user with more privs? */
+                        if (~restrictflags & ca->level)
+                                return false;
+                        ca->level = (ca->level | *addflags) & ~*removeflags;
+                        ca->tmodified = CURRTIME;
+                        if (ca->level == 0)
+                                object_unref(ca);
+                }
+        }
+        return true;
 }
 
 /* version that doesn't return the changes made */
 bool chanacs_change_simple(mychan_t *mychan, myentity_t *mt, const char *hostmask, unsigned int addflags, unsigned int removeflags, myentity_t *setter)
 {
-	unsigned int a, r;
+        unsigned int a, r;
 
-	a = addflags & ca_all;
-	r = removeflags & ca_all;
-	return chanacs_change(mychan, mt, hostmask, &a, &r, ca_all, setter);
+        a = addflags & ca_all;
+        r = removeflags & ca_all;
+        return chanacs_change(mychan, mt, hostmask, &a, &r, ca_all, setter);
 }
 
 static int expire_myuser_cb(myentity_t *mt, void *unused)
 {
-	hook_expiry_req_t req;
-	myuser_t *mu = user(mt);
+        hook_expiry_req_t req;
+        myuser_t *mu = user(mt);
 
-	return_val_if_fail(isuser(mt), 0);
+        return_val_if_fail(isuser(mt), 0);
 
-	/* If they're logged in, update lastlogin time.
-	 * To decrease db traffic, may want to only do
-	 * this if the account would otherwise be
-	 * deleted. -- jilles 
-	 */
-	if (MOWGLI_LIST_LENGTH(&mu->logins) > 0)
-	{
-		mu->lastlogin = CURRTIME;
-		return 0;
-	}
+        /* If they're logged in, update lastlogin time.
+         * To decrease db traffic, may want to only do
+         * this if the account would otherwise be
+         * deleted. -- jilles
+         */
+        if (MOWGLI_LIST_LENGTH(&mu->logins) > 0) {
+                mu->lastlogin = CURRTIME;
+                return 0;
+        }
 
-	if (MU_HOLD & mu->flags)
-		return 0;
+        if (MU_HOLD & mu->flags)
+                return 0;
 
-	req.data.mu = mu;
-	req.do_expire = 1;
-	hook_call_user_check_expire(&req);
+        req.data.mu = mu;
+        req.do_expire = 1;
+        hook_call_user_check_expire(&req);
 
-	if (!req.do_expire)
-		return 0;
+        if (!req.do_expire)
+                return 0;
 
-	if ((nicksvs.expiry > 0 && mu->lastlogin < CURRTIME && (unsigned int)(CURRTIME - mu->lastlogin) >= nicksvs.expiry) ||
-			(mu->flags & MU_WAITAUTH && CURRTIME - mu->registered >= 86400))
-	{
-		/* Don't expire accounts with privs on them in ashtheme.conf,
-		 * otherwise someone can reregister
-		 * them and take the privs -- jilles */
-		if (is_conf_soper(mu))
-			return 0;
+        if ((nicksvs.expiry > 0 && mu->lastlogin < CURRTIME && (unsigned int)(CURRTIME - mu->lastlogin) >= nicksvs.expiry) ||
+                        (mu->flags & MU_WAITAUTH && CURRTIME - mu->registered >= 86400)) {
+                /* Don't expire accounts with privs on them in ashtheme.conf,
+                 * otherwise someone can reregister
+                 * them and take the privs -- jilles */
+                if (is_conf_soper(mu))
+                        return 0;
 
-		slog(LG_REGISTER, _("EXPIRE: \2%s\2 from \2%s\2 "), entity(mu)->name, mu->email);
-		slog(LG_VERBOSE, "expire_check(): expiring account %s (unused %ds, email %s, nicks %zu, chanacs %zu)",
-				entity(mu)->name, (int)(CURRTIME - mu->lastlogin),
-				mu->email, MOWGLI_LIST_LENGTH(&mu->nicks),
-				MOWGLI_LIST_LENGTH(&entity(mu)->chanacs));
-		object_dispose(mu);
-	}
+                slog(LG_REGISTER, _("EXPIRE: \2%s\2 from \2%s\2 "), entity(mu)->name, mu->email);
+                slog(LG_VERBOSE, "expire_check(): expiring account %s (unused %ds, email %s, nicks %zu, chanacs %zu)",
+                     entity(mu)->name, (int)(CURRTIME - mu->lastlogin),
+                     mu->email, MOWGLI_LIST_LENGTH(&mu->nicks),
+                     MOWGLI_LIST_LENGTH(&entity(mu)->chanacs));
+                object_dispose(mu);
+        }
 
-	return 0;
+        return 0;
 }
 
 void expire_check(void *arg)
 {
-	mynick_t *mn;
-	mychan_t *mc;
-	user_t *u;
-	mowgli_patricia_iteration_state_t state;
-	hook_expiry_req_t req;
+        mynick_t *mn;
+        mychan_t *mc;
+        user_t *u;
+        mowgli_patricia_iteration_state_t state;
+        hook_expiry_req_t req;
 
-	/* Let them know about this and the likely subsequent db_save()
-	 * right away -- jilles */
-	if (curr_uplink != NULL && curr_uplink->conn != NULL)
-		sendq_flush(curr_uplink->conn);
+        /* Let them know about this and the likely subsequent db_save()
+         * right away -- jilles */
+        if (curr_uplink != NULL && curr_uplink->conn != NULL)
+                sendq_flush(curr_uplink->conn);
 
-	myentity_foreach_t(ENT_USER, expire_myuser_cb, NULL);
+        myentity_foreach_t(ENT_USER, expire_myuser_cb, NULL);
 
-	MOWGLI_PATRICIA_FOREACH(mn, &state, nicklist)
-	{
-		req.do_expire = 1;
-		req.data.mn = mn;
+        MOWGLI_PATRICIA_FOREACH(mn, &state, nicklist) {
+                req.do_expire = 1;
+                req.data.mn = mn;
 
-		hook_call_nick_check_expire(&req);
+                hook_call_nick_check_expire(&req);
 
-		if (!req.do_expire)
-			continue;
+                if (!req.do_expire)
+                        continue;
 
-		if (nicksvs.expiry > 0 && mn->lastseen < CURRTIME &&
-				(unsigned int)(CURRTIME - mn->lastseen) >= nicksvs.expiry)
-		{
-			if (MU_HOLD & mn->owner->flags)
-				continue;
+                if (nicksvs.expiry > 0 && mn->lastseen < CURRTIME &&
+                                (unsigned int)(CURRTIME - mn->lastseen) >= nicksvs.expiry) {
+                        if (MU_HOLD & mn->owner->flags)
+                                continue;
 
-			/* do not drop main nick like this */
-			if (!irccasecmp(mn->nick, entity(mn->owner)->name))
-				continue;
+                        /* do not drop main nick like this */
+                        if (!irccasecmp(mn->nick, entity(mn->owner)->name))
+                                continue;
 
-			u = user_find_named(mn->nick);
-			if (u != NULL && u->myuser == mn->owner)
-			{
-				/* still logged in, bleh */
-				mn->lastseen = CURRTIME;
-				mn->owner->lastlogin = CURRTIME;
-				continue;
-			}
+                        u = user_find_named(mn->nick);
+                        if (u != NULL && u->myuser == mn->owner) {
+                                /* still logged in, bleh */
+                                mn->lastseen = CURRTIME;
+                                mn->owner->lastlogin = CURRTIME;
+                                continue;
+                        }
 
-			slog(LG_REGISTER, _("EXPIRE: \2%s\2 from \2%s\2"), mn->nick, entity(mn->owner)->name);
-			slog(LG_VERBOSE, "expire_check(): expiring nick %s (unused %lds, account %s)",
-					mn->nick, (long)(CURRTIME - mn->lastseen),
-					entity(mn->owner)->name);
-			object_unref(mn);
-		}
-	}
+                        slog(LG_REGISTER, _("EXPIRE: \2%s\2 from \2%s\2"), mn->nick, entity(mn->owner)->name);
+                        slog(LG_VERBOSE, "expire_check(): expiring nick %s (unused %lds, account %s)",
+                             mn->nick, (long)(CURRTIME - mn->lastseen),
+                             entity(mn->owner)->name);
+                        object_unref(mn);
+                }
+        }
 
-	MOWGLI_PATRICIA_FOREACH(mc, &state, mclist)
-	{
-		req.do_expire = 1;
-		req.data.mc = mc;
+        MOWGLI_PATRICIA_FOREACH(mc, &state, mclist) {
+                req.do_expire = 1;
+                req.data.mc = mc;
 
-		hook_call_channel_check_expire(&req);
+                hook_call_channel_check_expire(&req);
 
-		if (!req.do_expire)
-			continue;
+                if (!req.do_expire)
+                        continue;
 
-		if ((CURRTIME - mc->used) >= 86400 - 3660)
-		{
-			/* keep last used time accurate to
-			 * within a day, making sure an active
-			 * channel will never get "Last used"
-			 * in /cs info -- jilles */
-			if (mychan_isused(mc))
-			{
-				mc->used = CURRTIME;
-				slog(LG_DEBUG, "expire_check(): updating last used time on %s because it appears to be still in use", mc->name);
-				continue;
-			}
-		}
+                if ((CURRTIME - mc->used) >= 86400 - 3660) {
+                        /* keep last used time accurate to
+                         * within a day, making sure an active
+                         * channel will never get "Last used"
+                         * in /cs info -- jilles */
+                        if (mychan_isused(mc)) {
+                                mc->used = CURRTIME;
+                                slog(LG_DEBUG, "expire_check(): updating last used time on %s because it appears to be still in use", mc->name);
+                                continue;
+                        }
+                }
 
-		if (chansvs.expiry > 0 && mc->used < CURRTIME &&
-				(unsigned int)(CURRTIME - mc->used) >= chansvs.expiry)
-		{
-			if (MC_HOLD & mc->flags)
-				continue;
+                if (chansvs.expiry > 0 && mc->used < CURRTIME &&
+                                (unsigned int)(CURRTIME - mc->used) >= chansvs.expiry) {
+                        if (MC_HOLD & mc->flags)
+                                continue;
 
-			slog(LG_REGISTER, _("EXPIRE: \2%s\2 from \2%s\2"), mc->name, mychan_founder_names(mc));
-			slog(LG_VERBOSE, "expire_check(): expiring channel %s (unused %lds, founder %s, chanacs %zu)",
-					mc->name, (long)(CURRTIME - mc->used),
-					mychan_founder_names(mc),
-					MOWGLI_LIST_LENGTH(&mc->chanacs));
+                        slog(LG_REGISTER, _("EXPIRE: \2%s\2 from \2%s\2"), mc->name, mychan_founder_names(mc));
+                        slog(LG_VERBOSE, "expire_check(): expiring channel %s (unused %lds, founder %s, chanacs %zu)",
+                             mc->name, (long)(CURRTIME - mc->used),
+                             mychan_founder_names(mc),
+                             MOWGLI_LIST_LENGTH(&mc->chanacs));
 
-			hook_call_channel_drop(mc);
-			if (mc->chan != NULL && !(mc->chan->flags & CHAN_LOG))
-				part(mc->name, chansvs.nick);
+                        hook_call_channel_drop(mc);
+                        if (mc->chan != NULL && !(mc->chan->flags & CHAN_LOG))
+                                part(mc->name, chansvs.nick);
 
-			object_unref(mc);
-		}
-	}
+                        object_unref(mc);
+                }
+        }
 }
 
 static int check_myuser_cb(myentity_t *mt, void *unused)
 {
-	myuser_t *mu = user(mt);
-	mowgli_node_t *n;
-	mynick_t *mn, *mn1;
+        myuser_t *mu = user(mt);
+        mowgli_node_t *n;
+        mynick_t *mn, *mn1;
 
-	return_val_if_fail(isuser(mt), 0);
+        return_val_if_fail(isuser(mt), 0);
 
-	if (!nicksvs.no_nick_ownership)
-	{
-		mn1 = NULL;
-		MOWGLI_ITER_FOREACH(n, mu->nicks.head)
-		{
-			mn = n->data;
-			if (mn->registered < mu->registered)
-				mu->registered = mn->registered;
-			if (mn->lastseen > mu->lastlogin)
-				mu->lastlogin = mn->lastseen;
-			if (!irccasecmp(entity(mu)->name, mn->nick))
-				mn1 = mn;
-		}
-		mn = mn1 != NULL ? mn1 : mynick_find(entity(mu)->name);
-		if (mn == NULL)
-		{
-			slog(LG_REGISTER, "db_check(): adding missing nick %s", entity(mu)->name);
-			mn = mynick_add(mu, entity(mu)->name);
-			mn->registered = mu->registered;
-			mn->lastseen = mu->lastlogin;
-		}
-		else if (mn->owner != mu)
-		{
-			slog(LG_REGISTER, "db_check(): replacing nick %s owned by %s with %s", mn->nick, entity(mn->owner)->name, entity(mu)->name);
-			object_unref(mn);
-			mn = mynick_add(mu, entity(mu)->name);
-			mn->registered = mu->registered;
-			mn->lastseen = mu->lastlogin;
-		}
-	}
+        if (!nicksvs.no_nick_ownership) {
+                mn1 = NULL;
+                MOWGLI_ITER_FOREACH(n, mu->nicks.head) {
+                        mn = n->data;
+                        if (mn->registered < mu->registered)
+                                mu->registered = mn->registered;
+                        if (mn->lastseen > mu->lastlogin)
+                                mu->lastlogin = mn->lastseen;
+                        if (!irccasecmp(entity(mu)->name, mn->nick))
+                                mn1 = mn;
+                }
+                mn = mn1 != NULL ? mn1 : mynick_find(entity(mu)->name);
+                if (mn == NULL) {
+                        slog(LG_REGISTER, "db_check(): adding missing nick %s", entity(mu)->name);
+                        mn = mynick_add(mu, entity(mu)->name);
+                        mn->registered = mu->registered;
+                        mn->lastseen = mu->lastlogin;
+                } else if (mn->owner != mu) {
+                        slog(LG_REGISTER, "db_check(): replacing nick %s owned by %s with %s", mn->nick, entity(mn->owner)->name, entity(mu)->name);
+                        object_unref(mn);
+                        mn = mynick_add(mu, entity(mu)->name);
+                        mn->registered = mu->registered;
+                        mn->lastseen = mu->lastlogin;
+                }
+        }
 
-	return 0;
+        return 0;
 }
 
 void db_check(void)
 {
-	myentity_foreach_t(ENT_USER, check_myuser_cb, NULL);
+        myentity_foreach_t(ENT_USER, check_myuser_cb, NULL);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs
