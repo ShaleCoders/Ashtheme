@@ -81,6 +81,12 @@ static void cs_cmd_topic(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
+		return;
+	}
+
 	if (!chanacs_source_has_flag(mc, si, CA_TOPIC))
 	{
 		command_fail(si, fault_noprivs, _("You are not authorized to perform this operation."));
@@ -148,6 +154,12 @@ static void cs_cmd_topicappend(sourceinfo_t *si, int parc, char *parv[])
         if (metadata_find(mc, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is closed."), chan);
+		return;
+	}
+
+        if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
 		return;
 	}
 
@@ -223,6 +235,12 @@ static void cs_cmd_topicprepend(sourceinfo_t *si, int parc, char *parv[])
         if (metadata_find(mc, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is closed."), chan);
+		return;
+	}
+
+        if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
 		return;
 	}
 
@@ -317,6 +335,12 @@ static void cs_cmd_topicswap(sourceinfo_t *si, int parc, char *parv[])
 	if (metadata_find(mc, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is closed."), chan);
+		return;
+	}
+
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
 		return;
 	}
 

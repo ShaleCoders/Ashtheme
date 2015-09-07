@@ -56,6 +56,12 @@ static void cmd_op(sourceinfo_t *si, bool opping, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
+		return;
+	}
+
 	if (!chanacs_source_has_flag(mc, si, CA_OP) && (tu != si->su ||
 				!chanacs_source_has_flag(mc, si, CA_AUTOOP)))
 	{

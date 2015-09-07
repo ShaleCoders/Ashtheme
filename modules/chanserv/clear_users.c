@@ -56,6 +56,12 @@ static void cs_cmd_clear_users(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), channel);
+		return;
+	}
+
 	if (!(c = channel_find(channel)))
 	{
 		command_fail(si, fault_nosuch_target, _("\2%s\2 is currently empty."), channel);
@@ -67,7 +73,7 @@ static void cs_cmd_clear_users(sourceinfo_t *si, int parc, char *parv[])
 		command_fail(si, fault_noprivs, _("You are not authorized to perform this operation."));
 		return;
 	}
-	
+
 	if (metadata_find(mc, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is closed."), channel);

@@ -106,6 +106,12 @@ static void cs_cmd_template(sourceinfo_t *si, int parc, char *parv[])
 			return;
 		}
 
+		if (metadata_find(mc, "private:frozen:freezer") && !has_priv(si, PRIV_CHAN_AUSPEX))
+		{
+			command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), channel);
+			return;
+		}
+
 		md = metadata_find(mc, "private:templates");
 
 		if (md != NULL)
@@ -164,6 +170,12 @@ static void cs_cmd_template(sourceinfo_t *si, int parc, char *parv[])
 		if (metadata_find(mc, "private:close:closer"))
 		{
 			command_fail(si, fault_noprivs, _("\2%s\2 is closed."), channel);
+			return;
+		}
+
+		if (metadata_find(mc, "private:frozen:freezer"))
+		{
+			command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), channel);
 			return;
 		}
 

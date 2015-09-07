@@ -110,6 +110,12 @@ static void cs_xop(sourceinfo_t *si, int parc, char *parv[], const char *levelde
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer") && (!has_priv(si, PRIV_CHAN_AUSPEX) || strcasecmp("LIST", cmd)))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
+		return;
+	}
+
 	level = get_template_flags(mc, leveldesc);
 	if (level & CA_FOUNDER)
 	{

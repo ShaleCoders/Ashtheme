@@ -407,6 +407,12 @@ cs_set_cmd_antiflood(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), parv[0]);
+		return;
+	}
+
 	/* allow opers with PRIV_CHAN_ADMIN to override this setting since it has
 	   oper-specific settings (i.e. AKILL action) */ 
 	if (!chanacs_source_has_flag(mc, si, CA_SET) && !has_priv(si, PRIV_CHAN_ADMIN))

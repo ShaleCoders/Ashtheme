@@ -74,8 +74,14 @@ static void cmd_protect(sourceinfo_t *si, bool protecting, int parc, char *parv[
 		command_fail(si, fault_noprivs, _("You are not authorized to perform this operation on \2%s\2."), mc->name);
 		return;
 	}
-	
-	if (metadata_find(mc, "private:close:closer"))
+
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
+		return;
+	}
+
+        if (metadata_find(mc, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is closed."), chan);
 		return;

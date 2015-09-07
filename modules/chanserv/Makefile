@@ -25,6 +25,7 @@ SRCS =			\
 	fflags.c	\
 	flags.c	\
 	ftransfer.c	\
+        freeze.c        \
 	getkey.c	\
 	halfop.c	\
 	help.c	\

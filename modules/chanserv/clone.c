@@ -51,7 +51,7 @@ static void cs_cmd_clone(sourceinfo_t *si, int parc, char *parv[])
 		command_fail(si, fault_nosuch_target, "\2%s\2 is not registered.", source);
 		return;
 	}
-	
+
 	if (!(mc2 = mychan_find(target)))
 	{
 		command_fail(si, fault_nosuch_target, "\2%s\2 is not registered.", target);
@@ -63,13 +63,25 @@ static void cs_cmd_clone(sourceinfo_t *si, int parc, char *parv[])
 		command_fail(si, fault_nochange, "Cannot clone a channel to itself.");
 		return;
 	}
-	
+
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), source);
+		return;
+	}
+
+	if (metadata_find(mc2, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), target);
+		return;
+	}
+
 	if (metadata_find(mc, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, "\2%s\2 is closed.", source);
 		return;
 	}
-	
+
 	if (metadata_find(mc2, "private:close:closer"))
 	{
 		command_fail(si, fault_noprivs, "\2%s\2 is closed.", target);

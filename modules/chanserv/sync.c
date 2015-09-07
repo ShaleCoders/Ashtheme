@@ -41,7 +41,7 @@ static void do_chanuser_sync(mychan_t *mc, chanuser_t *cu, chanacs_t *ca,
 	}
 	fl = chanacs_user_flags(mc, cu->user);
 	noop = mc->flags & MC_NOOP || (cu->user->myuser != NULL &&
-			cu->user->myuser->flags & MU_NOOP);
+			cu->user->myuser->flags & MU_NOOP) || metadata_find(mc, "private:frozen:freezer") != NULL;
 
 	slog(LG_DEBUG, "do_chanuser_sync(): flags: %s, noop: %s", bitmask_to_flags(fl), noop ? "true" : "false");
 
@@ -311,6 +311,12 @@ static void cs_cmd_sync(sourceinfo_t *si, int parc, char *parv[])
 	if (!(mc = mychan_find(name)))
 	{
 		command_fail(si, fault_nosuch_target, "\2%s\2 is not registered.", name);
+		return;
+	}
+
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), name);
 		return;
 	}
 

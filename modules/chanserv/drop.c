@@ -63,6 +63,13 @@ static void cs_cmd_drop(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	/* Ensure a founder cannot drop a frozen channel and re-register it.  Only staff may fdrop it. */
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), name);
+		return;
+	}
+
 	if (si->c != NULL)
 	{
 		command_fail(si, fault_noprivs, _("For security reasons, you may not drop a channel registration with a fantasy command."));

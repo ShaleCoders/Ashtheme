@@ -363,7 +363,7 @@ static void cs_join(hook_channel_joinpart_t *hdata)
 
 	flags = chanacs_user_flags(mc, u);
 	noop = mc->flags & MC_NOOP || (u->myuser != NULL &&
-			u->myuser->flags & MU_NOOP);
+			u->myuser->flags & MU_NOOP) || metadata_find(mc, "private:frozen:freezer") != NULL;
 	/* attempt to deop people recreating channels, if the more
 	 * sophisticated mechanism is disabled */
 	secure = mc->flags & MC_SECURE || (!chansvs.changets &&

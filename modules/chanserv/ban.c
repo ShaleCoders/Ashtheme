@@ -57,6 +57,12 @@ static void cs_cmd_ban(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), channel);
+		return;
+	}
+
 	if (!c)
 	{
 		command_fail(si, fault_nosuch_target, _("\2%s\2 is currently empty."), channel);
@@ -138,6 +144,12 @@ static void cs_cmd_unban(sourceinfo_t *si, int parc, char *parv[])
 	if (!mc)
 	{
 		command_fail(si, fault_nosuch_target, _("Channel \2%s\2 is not registered."), channel);
+		return;
+	}
+
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), channel);
 		return;
 	}
 

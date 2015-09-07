@@ -44,6 +44,12 @@ static void cs_cmd_set_entrymsg(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), parv[0]);
+		return;
+	}
+
 	if (!chanacs_source_has_flag(mc, si, CA_SET))
 	{
 		command_fail(si, fault_noprivs, _("You are not authorized to execute this command."));

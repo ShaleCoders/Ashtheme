@@ -69,6 +69,12 @@ static void cs_cmd_clear_bans(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), parv[0]);
+		return;
+	}
+
 	if (!(c = channel_find(parv[0])))
 	{
 		command_fail(si, fault_nosuch_target, _("\2%s\2 is currently empty."), parv[0]);

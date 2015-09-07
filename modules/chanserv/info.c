@@ -68,6 +68,12 @@ static void cs_cmd_info(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	if (!has_priv(si, PRIV_CHAN_AUSPEX) && metadata_find(mc, "private:frozen:freezer"))
+	{
+		command_fail(si, fault_noprivs, _("\2%s\2 has been frozen by the %s administration."), mc->name, me.netname);
+		return;
+	}
+
 	hide_info = use_channel_private && mc->flags & MC_PRIVATE &&
 		!chanacs_source_has_flag(mc, si, CA_ACLVIEW) &&
 		!has_priv(si, PRIV_CHAN_AUSPEX);
@@ -277,6 +283,24 @@ static void cs_cmd_info(sourceinfo_t *si, int parc, char *parv[])
 		strftime(strfbuf, sizeof strfbuf, TIME_FORMAT, &tm);
 
 		command_success_nodata(si, _("%s was \2CLOSED\2 by %s on %s (%s)"), mc->name, setter, strfbuf, reason);
+	}
+
+	if (has_priv(si, PRIV_CHAN_AUSPEX) && (md = metadata_find(mc, "private:frozen:freezer")))
+	{
+		const char *setter = md->value;
+		const char *reason;
+		time_t ts;
+
+		md = metadata_find(mc, "private:frozen:reason");
+		reason = md != NULL ? md->value : "unknown";
+
+		md = metadata_find(mc, "private:frozen:timestamp");
+		ts = md != NULL ? atoi(md->value) : 0;
+
+		tm = *localtime(&ts);
+		strftime(strfbuf, sizeof strfbuf, TIME_FORMAT, &tm);
+
+		command_success_nodata(si, _("%s was \2FROZEN\2 by %s on %s (%s)"), mc->name, setter, strfbuf, reason);
 	}
 
 	req.mc = mc;
