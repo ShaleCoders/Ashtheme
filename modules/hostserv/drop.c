@@ -13,6 +13,7 @@ DECLARE_MODULE_V1
 (
 	"hostserv/drop", false, _modinit, _moddeinit,
 	PACKAGE_STRING,
+       	"Xtheme Development Group <http://www.Xtheme.org>"
 );
 
 static void hs_cmd_drop(sourceinfo_t *si, int parc, char *parv[]);
