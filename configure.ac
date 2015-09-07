@@ -7,7 +7,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
 
-AC_INIT(ashtheme, 1.0.2, shalecoders@gmail.com)
+AC_INIT(ashtheme, 1.0.3, shalecoders@gmail.com)
 
 AC_CONFIG_AUX_DIR(autoconf)
 
