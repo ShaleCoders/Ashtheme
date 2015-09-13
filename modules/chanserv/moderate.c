@@ -240,10 +240,6 @@ static void cs_cmd_activate(sourceinfo_t *si, int parc, char *parv[])
 	mc->registered = CURRTIME;
 	mc->used = CURRTIME;
 	mc->mlock_on |= (CMODE_NOEXT | CMODE_TOPIC);
-	if (c != NULL && c->limit == 0)
-		mc->mlock_off |= CMODE_LIMIT;
-	if (c != NULL && c->key == NULL)
-		mc->mlock_off |= CMODE_KEY;
 	mc->flags |= config_options.defcflags;
 	slog(LG_DEBUG, "cs_cmd_activate(): defcflags = %d, mc->flags = %d, guard? %s", config_options.defcflags, mc->flags, (mc->flags & MC_GUARD) ? "YES" : "NO");
 
