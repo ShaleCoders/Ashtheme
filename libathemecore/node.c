@@ -39,80 +39,74 @@ mowgli_heap_t *qline_heap;	/* 16 */
 
 void init_nodes(void)
 {
-	kline_heap = sharedheap_get(sizeof(kline_t));
-	xline_heap = sharedheap_get(sizeof(xline_t));
-	qline_heap = sharedheap_get(sizeof(qline_t));
+        kline_heap = sharedheap_get(sizeof(kline_t));
+        xline_heap = sharedheap_get(sizeof(xline_t));
+        qline_heap = sharedheap_get(sizeof(qline_t));
 
-	if (kline_heap == NULL || xline_heap == NULL || qline_heap == NULL)
-	{
-		slog(LG_INFO, "init_nodes(): block allocator failed.");
-		exit(EXIT_FAILURE);
-	}
+        if (kline_heap == NULL || xline_heap == NULL || qline_heap == NULL) {
+                slog(LG_INFO, "init_nodes(): block allocator failed.");
+                exit(EXIT_FAILURE);
+        }
 
-	init_uplinks();
-	init_servers();
-	init_metadata();
-	init_accounts();
-	init_entities();
-	init_users();
-	init_channels();
-	init_privs();
+        init_uplinks();
+        init_servers();
+        init_metadata();
+        init_accounts();
+        init_entities();
+        init_users();
+        init_channels();
+        init_privs();
 }
 
 /* Mark everything illegal, to be called before a rehash -- jilles */
 void mark_all_illegal()
 {
-	mowgli_node_t *n, *tn;
-	uplink_t *u;
-	soper_t *soper;
-	operclass_t *operclass;
+        mowgli_node_t *n, *tn;
+        uplink_t *u;
+        soper_t *soper;
+        operclass_t *operclass;
 
-	MOWGLI_ITER_FOREACH(n, uplinks.head)
-	{
-		u = (uplink_t *)n->data;
-		u->flags |= UPF_ILLEGAL;
-	}
+        MOWGLI_ITER_FOREACH(n, uplinks.head) {
+                u = (uplink_t *)n->data;
+                u->flags |= UPF_ILLEGAL;
+        }
 
-	/* just delete these, we can survive without for a while */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, soperlist.head)
-	{
-		soper = (soper_t *)n->data;
-		if (soper->flags & SOPER_CONF)
-			soper_delete(soper);
-	}
-	/* no sopers pointing to these anymore */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, operclasslist.head)
-	{
-		operclass = (operclass_t *)n->data;
-		operclass_delete(operclass);
-	}
+        /* just delete these, we can survive without for a while */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, soperlist.head) {
+                soper = (soper_t *)n->data;
+                if (soper->flags & SOPER_CONF)
+                        soper_delete(soper);
+        }
+        /* no sopers pointing to these anymore */
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, operclasslist.head) {
+                operclass = (operclass_t *)n->data;
+                operclass_delete(operclass);
+        }
 }
 
 /* Unmark everything illegal, to be called after a failed rehash -- jilles */
 void unmark_all_illegal()
 {
-	mowgli_node_t *n;
-	uplink_t *u;
+        mowgli_node_t *n;
+        uplink_t *u;
 
-	MOWGLI_ITER_FOREACH(n, uplinks.head)
-	{
-		u = (uplink_t *)n->data;
-		u->flags &= ~UPF_ILLEGAL;
-	}
+        MOWGLI_ITER_FOREACH(n, uplinks.head) {
+                u = (uplink_t *)n->data;
+                u->flags &= ~UPF_ILLEGAL;
+        }
 }
 
 /* Remove illegal stuff, to be called after a successful rehash -- jilles */
 void remove_illegals()
 {
-	mowgli_node_t *n, *tn;
-	uplink_t *u;
+        mowgli_node_t *n, *tn;
+        uplink_t *u;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, uplinks.head)
-	{
-		u = (uplink_t *)n->data;
-		if (u->flags & UPF_ILLEGAL && u != curr_uplink)
-			uplink_delete(u);
-	}
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, uplinks.head) {
+                u = (uplink_t *)n->data;
+                if (u->flags & UPF_ILLEGAL && u != curr_uplink)
+                        uplink_delete(u);
+        }
 }
 
 /*************
@@ -121,151 +115,146 @@ void remove_illegals()
 
 kline_t *kline_add_with_id(const char *user, const char *host, const char *reason, long duration, const char *setby, unsigned long id)
 {
-	kline_t *k;
-	mowgli_node_t *n = mowgli_node_create();
+        kline_t *k;
+        mowgli_node_t *n = mowgli_node_create();
 
-	slog(LG_DEBUG, "kline_add(): %s@%s -> %s (%ld)", user, host, reason, duration);
+        slog(LG_DEBUG, "kline_add(): %s@%s -> %s (%ld)", user, host, reason, duration);
 
-	k = mowgli_heap_alloc(kline_heap);
+        k = mowgli_heap_alloc(kline_heap);
 
-	mowgli_node_add(k, n, &klnlist);
+        mowgli_node_add(k, n, &klnlist);
 
-	k->user = sstrdup(user);
-	k->host = sstrdup(host);
-	k->reason = sstrdup(reason);
-	k->setby = sstrdup(setby);
-	k->duration = duration;
-	k->settime = CURRTIME;
-	k->expires = CURRTIME + duration;
-	k->number = id;
+        k->user = sstrdup(user);
+        k->host = sstrdup(host);
+        k->reason = sstrdup(reason);
+        k->setby = sstrdup(setby);
+        k->duration = duration;
+        k->settime = CURRTIME;
+        k->expires = CURRTIME + duration;
+        k->number = id;
 
-	cnt.kline++;
+        cnt.kline++;
 
 
-	char treason[BUFSIZE];
-	snprintf(treason, sizeof(treason), "[#%lu] %s", k->number, k->reason);
+        char treason[BUFSIZE];
+        snprintf(treason, sizeof(treason), "[#%lu] %s", k->number, k->reason);
 
-	if (me.connected)
-		kline_sts("*", user, host, duration, treason);
+        if (me.connected)
+                kline_sts("*", user, host, duration, treason);
 
-	return k;
+        return k;
 }
 
 kline_t *kline_add(const char *user, const char *host, const char *reason, long duration, const char *setby)
 {
-	return kline_add_with_id(user, host, reason, duration, setby, ++me.kline_id);
+        return kline_add_with_id(user, host, reason, duration, setby, ++me.kline_id);
 }
 
 kline_t *kline_add_user(user_t *u, const char *reason, long duration, const char *setby)
 {
-	bool use_ident = config_options.kline_with_ident && (!config_options.kline_verified_ident || *u->user != '~');
+        bool use_ident = config_options.kline_with_ident && (!config_options.kline_verified_ident || *u->user != '~');
 
-	return kline_add (use_ident ? u->user : "*", u->ip ? u->ip : u->host, reason, duration, setby);
+        return kline_add (use_ident ? u->user : "*", u->ip ? u->ip : u->host, reason, duration, setby);
 }
 
 void kline_delete(kline_t *k)
 {
-	mowgli_node_t *n;
+        mowgli_node_t *n;
 
-	return_if_fail(k != NULL);
+        return_if_fail(k != NULL);
 
-	slog(LG_DEBUG, "kline_delete(): %s@%s -> %s", k->user, k->host, k->reason);
+        slog(LG_DEBUG, "kline_delete(): %s@%s -> %s", k->user, k->host, k->reason);
 
-	/* only unkline if ircd has not already removed this -- jilles */
-	if (me.connected && (k->duration == 0 || k->expires > CURRTIME))
-		unkline_sts("*", k->user, k->host);
+        /* only unkline if ircd has not already removed this -- jilles */
+        if (me.connected && (k->duration == 0 || k->expires > CURRTIME))
+                unkline_sts("*", k->user, k->host);
 
-	n = mowgli_node_find(k, &klnlist);
-	mowgli_node_delete(n, &klnlist);
-	mowgli_node_free(n);
+        n = mowgli_node_find(k, &klnlist);
+        mowgli_node_delete(n, &klnlist);
+        mowgli_node_free(n);
 
-	free(k->user);
-	free(k->host);
-	free(k->reason);
-	free(k->setby);
+        free(k->user);
+        free(k->host);
+        free(k->reason);
+        free(k->setby);
 
-	mowgli_heap_free(kline_heap, k);
+        mowgli_heap_free(kline_heap, k);
 
-	cnt.kline--;
+        cnt.kline--;
 }
 
 kline_t *kline_find(const char *user, const char *host)
 {
-	kline_t *k;
-	mowgli_node_t *n;
+        kline_t *k;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, klnlist.head)
-	{
-		k = (kline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, klnlist.head) {
+                k = (kline_t *)n->data;
 
-		if ((!match(k->user, user)) && (!match(k->host, host)))
-			return k;
-	}
+                if ((!match(k->user, user)) && (!match(k->host, host)))
+                        return k;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 kline_t *kline_find_num(unsigned long number)
 {
-	kline_t *k;
-	mowgli_node_t *n;
+        kline_t *k;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, klnlist.head)
-	{
-		k = (kline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, klnlist.head) {
+                k = (kline_t *)n->data;
 
-		if (k->number == number)
-			return k;
-	}
+                if (k->number == number)
+                        return k;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 kline_t *kline_find_user(user_t *u)
 {
-	kline_t *k;
-	mowgli_node_t *n;
+        kline_t *k;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, klnlist.head)
-	{
-		k = (kline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, klnlist.head) {
+                k = (kline_t *)n->data;
 
-		if (k->duration != 0 && k->expires <= CURRTIME)
-			continue;
-		if (!match(k->user, u->user) && (!match(k->host, u->host) || !match(k->host, u->ip) || !match_ips(k->host, u->ip)))
-			return k;
-	}
+                if (k->duration != 0 && k->expires <= CURRTIME)
+                        continue;
+                if (!match(k->user, u->user) && (!match(k->host, u->host) || !match(k->host, u->ip) || !match_ips(k->host, u->ip)))
+                        return k;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 void kline_expire(void *arg)
 {
-	kline_t *k;
-	char *reason;
-	mowgli_node_t *n, *tn;
+        kline_t *k;
+        char *reason;
+        mowgli_node_t *n, *tn;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, klnlist.head)
-	{
-		k = (kline_t *)n->data;
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, klnlist.head) {
+                k = (kline_t *)n->data;
 
-		if (k->duration == 0)
-			continue;
+                if (k->duration == 0)
+                        continue;
 
-		if (k->expires <= CURRTIME)
-		{
-			/* TODO: determine validity of k->reason */
-			reason = k->reason ? k->reason : "(none)";
+                if (k->expires <= CURRTIME) {
+                        /* TODO: determine validity of k->reason */
+                        reason = k->reason ? k->reason : "(none)";
 
-			slog(LG_INFO, _("KLINE:EXPIRE: \2%s@%s\2 set \2%s\2 ago by \2%s\2 (reason: %s)"),
-				k->user, k->host, time_ago(k->settime), k->setby, reason);
+                        slog(LG_INFO, _("KLINE:EXPIRE: \2%s@%s\2 set \2%s\2 ago by \2%s\2 (reason: %s)"),
+                             k->user, k->host, time_ago(k->settime), k->setby, reason);
 
-			verbose_wallops(_("AKILL expired on \2%s@%s\2, set by \2%s\2 (reason: %s)"),
-				k->user, k->host, k->setby, reason);
+                        verbose_wallops(_("AKILL expired on \2%s@%s\2, set by \2%s\2 (reason: %s)"),
+                                        k->user, k->host, k->setby, reason);
 
-			kline_delete(k);
-		}
-	}
+                        kline_delete(k);
+                }
+        }
 }
 
 /*************
@@ -274,136 +263,130 @@ void kline_expire(void *arg)
 
 xline_t *xline_add(const char *realname, const char *reason, long duration, const char *setby)
 {
-	xline_t *x;
-	mowgli_node_t *n = mowgli_node_create();
-	static unsigned int xcnt = 0;
+        xline_t *x;
+        mowgli_node_t *n = mowgli_node_create();
+        static unsigned int xcnt = 0;
 
-	slog(LG_DEBUG, "xline_add(): %s -> %s (%ld)", realname, reason, duration);
+        slog(LG_DEBUG, "xline_add(): %s -> %s (%ld)", realname, reason, duration);
 
-	x = mowgli_heap_alloc(xline_heap);
+        x = mowgli_heap_alloc(xline_heap);
 
-	mowgli_node_add(x, n, &xlnlist);
+        mowgli_node_add(x, n, &xlnlist);
 
-	x->realname = sstrdup(realname);
-	x->reason = sstrdup(reason);
-	x->setby = sstrdup(setby);
-	x->duration = duration;
-	x->settime = CURRTIME;
-	x->expires = CURRTIME + duration;
-	x->number = ++xcnt;
+        x->realname = sstrdup(realname);
+        x->reason = sstrdup(reason);
+        x->setby = sstrdup(setby);
+        x->duration = duration;
+        x->settime = CURRTIME;
+        x->expires = CURRTIME + duration;
+        x->number = ++xcnt;
 
-	cnt.xline++;
+        cnt.xline++;
 
-	if (me.connected)
-		xline_sts("*", realname, duration, reason);
+        if (me.connected)
+                xline_sts("*", realname, duration, reason);
 
-	return x;
+        return x;
 }
 
 void xline_delete(const char *realname)
 {
-	xline_t *x = xline_find(realname);
-	mowgli_node_t *n;
+        xline_t *x = xline_find(realname);
+        mowgli_node_t *n;
 
-	if (!x)
-	{
-		slog(LG_DEBUG, "xline_delete(): called for nonexistant xline: %s", realname);
-		return;
-	}
+        if (!x) {
+                slog(LG_DEBUG, "xline_delete(): called for nonexistant xline: %s", realname);
+                return;
+        }
 
-	slog(LG_DEBUG, "xline_delete(): %s -> %s", x->realname, x->reason);
+        slog(LG_DEBUG, "xline_delete(): %s -> %s", x->realname, x->reason);
 
-	/* only unxline if ircd has not already removed this -- jilles */
-	if (me.connected && (x->duration == 0 || x->expires > CURRTIME))
-		unxline_sts("*", x->realname);
+        /* only unxline if ircd has not already removed this -- jilles */
+        if (me.connected && (x->duration == 0 || x->expires > CURRTIME))
+                unxline_sts("*", x->realname);
 
-	n = mowgli_node_find(x, &xlnlist);
-	mowgli_node_delete(n, &xlnlist);
-	mowgli_node_free(n);
+        n = mowgli_node_find(x, &xlnlist);
+        mowgli_node_delete(n, &xlnlist);
+        mowgli_node_free(n);
 
-	free(x->realname);
-	free(x->reason);
-	free(x->setby);
+        free(x->realname);
+        free(x->reason);
+        free(x->setby);
 
-	mowgli_heap_free(xline_heap, x);
+        mowgli_heap_free(xline_heap, x);
 
-	cnt.xline--;
+        cnt.xline--;
 }
 
 xline_t *xline_find(const char *realname)
 {
-	xline_t *x;
-	mowgli_node_t *n;
+        xline_t *x;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, xlnlist.head)
-	{
-		x = (xline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, xlnlist.head) {
+                x = (xline_t *)n->data;
 
-		if (!match(x->realname, realname))
-			return x;
-	}
+                if (!match(x->realname, realname))
+                        return x;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 xline_t *xline_find_num(unsigned int number)
 {
-	xline_t *x;
-	mowgli_node_t *n;
+        xline_t *x;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, xlnlist.head)
-	{
-		x = (xline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, xlnlist.head) {
+                x = (xline_t *)n->data;
 
-		if (x->number == number)
-			return x;
-	}
+                if (x->number == number)
+                        return x;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 xline_t *xline_find_user(user_t *u)
 {
-	xline_t *x;
-	mowgli_node_t *n;
+        xline_t *x;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, xlnlist.head)
-	{
-		x = (xline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, xlnlist.head) {
+                x = (xline_t *)n->data;
 
-		if (x->duration != 0 && x->expires <= CURRTIME)
-			continue;
+                if (x->duration != 0 && x->expires <= CURRTIME)
+                        continue;
 
-		if (!match(x->realname, u->gecos))
-			return x;
-	}
+                if (!match(x->realname, u->gecos))
+                        return x;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 void xline_expire(void *arg)
 {
-	xline_t *x;
-	mowgli_node_t *n, *tn;
+        xline_t *x;
+        mowgli_node_t *n, *tn;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, xlnlist.head)
-	{
-		x = (xline_t *)n->data;
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, xlnlist.head) {
+                x = (xline_t *)n->data;
 
-		if (x->duration == 0)
-			continue;
+                if (x->duration == 0)
+                        continue;
 
-		if (x->expires <= CURRTIME)
-		{
-			slog(LG_INFO, _("XLINE:EXPIRE: \2%s\2 set \2%s\2 ago by \2%s\2"),
-				x->realname, time_ago(x->settime), x->setby);
+                if (x->expires <= CURRTIME) {
+                        slog(LG_INFO, _("XLINE:EXPIRE: \2%s\2 set \2%s\2 ago by \2%s\2"),
+                             x->realname, time_ago(x->settime), x->setby);
 
-			verbose_wallops(_("XLINE expired on \2%s\2, set by \2%s\2"),
-				x->realname, x->setby);
+                        verbose_wallops(_("XLINE expired on \2%s\2, set by \2%s\2"),
+                                        x->realname, x->setby);
 
-			xline_delete(x->realname);
-		}
-	}
+                        xline_delete(x->realname);
+                }
+        }
 }
 
 /*************
@@ -412,154 +395,147 @@ void xline_expire(void *arg)
 
 qline_t *qline_add(const char *mask, const char *reason, long duration, const char *setby)
 {
-	qline_t *q;
-	mowgli_node_t *n = mowgli_node_create();
-	static unsigned int qcnt = 0;
+        qline_t *q;
+        mowgli_node_t *n = mowgli_node_create();
+        static unsigned int qcnt = 0;
 
-	slog(LG_DEBUG, "qline_add(): %s -> %s (%ld)", mask, reason, duration);
+        slog(LG_DEBUG, "qline_add(): %s -> %s (%ld)", mask, reason, duration);
 
-	q = mowgli_heap_alloc(qline_heap);
-	mowgli_node_add(q, n, &qlnlist);
+        q = mowgli_heap_alloc(qline_heap);
+        mowgli_node_add(q, n, &qlnlist);
 
-	q->mask = sstrdup(mask);
-	q->reason = sstrdup(reason);
-	q->setby = sstrdup(setby);
-	q->duration = duration;
-	q->settime = CURRTIME;
-	q->expires = CURRTIME + duration;
-	q->number = ++qcnt;
+        q->mask = sstrdup(mask);
+        q->reason = sstrdup(reason);
+        q->setby = sstrdup(setby);
+        q->duration = duration;
+        q->settime = CURRTIME;
+        q->expires = CURRTIME + duration;
+        q->number = ++qcnt;
 
-	cnt.qline++;
+        cnt.qline++;
 
-	if (me.connected)
-		qline_sts("*", mask, duration, reason);
+        if (me.connected)
+                qline_sts("*", mask, duration, reason);
 
-	return q;
+        return q;
 }
 
 void qline_delete(const char *mask)
 {
-	qline_t *q = qline_find(mask);
-	mowgli_node_t *n;
+        qline_t *q = qline_find(mask);
+        mowgli_node_t *n;
 
-	if (!q)
-	{
-		slog(LG_DEBUG, "qline_delete(): called for nonexistant qline: %s", mask);
-		return;
-	}
+        if (!q) {
+                slog(LG_DEBUG, "qline_delete(): called for nonexistant qline: %s", mask);
+                return;
+        }
 
-	slog(LG_DEBUG, "qline_delete(): %s -> %s", q->mask, q->reason);
+        slog(LG_DEBUG, "qline_delete(): %s -> %s", q->mask, q->reason);
 
-	/* only unqline if ircd has not already removed this -- jilles */
-	if (me.connected && (q->duration == 0 || q->expires > CURRTIME))
-		unqline_sts("*", q->mask);
+        /* only unqline if ircd has not already removed this -- jilles */
+        if (me.connected && (q->duration == 0 || q->expires > CURRTIME))
+                unqline_sts("*", q->mask);
 
-	n = mowgli_node_find(q, &qlnlist);
-	mowgli_node_delete(n, &qlnlist);
-	mowgli_node_free(n);
+        n = mowgli_node_find(q, &qlnlist);
+        mowgli_node_delete(n, &qlnlist);
+        mowgli_node_free(n);
 
-	free(q->mask);
-	free(q->reason);
-	free(q->setby);
+        free(q->mask);
+        free(q->reason);
+        free(q->setby);
 
-	mowgli_heap_free(qline_heap, q);
+        mowgli_heap_free(qline_heap, q);
 
-	cnt.qline--;
+        cnt.qline--;
 }
 
 qline_t *qline_find(const char *mask)
 {
-	qline_t *q;
-	mowgli_node_t *n;
+        qline_t *q;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, qlnlist.head)
-	{
-		q = (qline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, qlnlist.head) {
+                q = (qline_t *)n->data;
 
-		if (!irccasecmp(q->mask, mask))
-			return q;
-	}
+                if (!irccasecmp(q->mask, mask))
+                        return q;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 qline_t *qline_find_num(unsigned int number)
 {
-	qline_t *q;
-	mowgli_node_t *n;
+        qline_t *q;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, qlnlist.head)
-	{
-		q = (qline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, qlnlist.head) {
+                q = (qline_t *)n->data;
 
-		if (q->number == number)
-			return q;
-	}
+                if (q->number == number)
+                        return q;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 qline_t *qline_find_user(user_t *u)
 {
-	qline_t *q;
-	mowgli_node_t *n;
+        qline_t *q;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, qlnlist.head)
-	{
-		q = (qline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, qlnlist.head) {
+                q = (qline_t *)n->data;
 
-		if (q->duration != 0 && q->expires <= CURRTIME)
-			continue;
-		if (q->mask[0] == '#' || q->mask[0] == '&')
-			continue;
-		if (!match(q->mask, u->nick))
-			return q;
-	}
+                if (q->duration != 0 && q->expires <= CURRTIME)
+                        continue;
+                if (q->mask[0] == '#' || q->mask[0] == '&')
+                        continue;
+                if (!match(q->mask, u->nick))
+                        return q;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 qline_t *qline_find_channel(channel_t *c)
 {
-	qline_t *q;
-	mowgli_node_t *n;
+        qline_t *q;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, qlnlist.head)
-	{
-		q = (qline_t *)n->data;
+        MOWGLI_ITER_FOREACH(n, qlnlist.head) {
+                q = (qline_t *)n->data;
 
-		if (q->duration != 0 && q->expires <= CURRTIME)
-			continue;
-		if (!irccasecmp(q->mask, c->name))
-			return q;
-	}
+                if (q->duration != 0 && q->expires <= CURRTIME)
+                        continue;
+                if (!irccasecmp(q->mask, c->name))
+                        return q;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 void qline_expire(void *arg)
 {
-	qline_t *q;
-	mowgli_node_t *n, *tn;
+        qline_t *q;
+        mowgli_node_t *n, *tn;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, qlnlist.head)
-	{
-		q = (qline_t *)n->data;
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, qlnlist.head) {
+                q = (qline_t *)n->data;
 
-		if (q->duration == 0)
-			continue;
+                if (q->duration == 0)
+                        continue;
 
-		if (q->expires <= CURRTIME)
-		{
-			slog(LG_INFO, _("QLINE:EXPIRE: \2%s\2 set \2%s\2 ago by \2%s\2"),
-				q->mask, time_ago(q->settime), q->setby);
+                if (q->expires <= CURRTIME) {
+                        slog(LG_INFO, _("QLINE:EXPIRE: \2%s\2 set \2%s\2 ago by \2%s\2"),
+                             q->mask, time_ago(q->settime), q->setby);
 
-			verbose_wallops(_("QLINE expired on \2%s\2, set by \2%s\2"),
-				q->mask, q->setby);
+                        verbose_wallops(_("QLINE expired on \2%s\2, set by \2%s\2"),
+                                        q->mask, q->setby);
 
-			qline_delete(q->mask);
-		}
-	}
+                        qline_delete(q->mask);
+                }
+        }
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

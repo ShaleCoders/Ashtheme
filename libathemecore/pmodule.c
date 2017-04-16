@@ -41,56 +41,53 @@ bool backend_loaded = false;
 
 void pcommand_init(void)
 {
-	pcommand_heap = sharedheap_get(sizeof(pcommand_t));
+        pcommand_heap = sharedheap_get(sizeof(pcommand_t));
 
-	if (!pcommand_heap)
-	{
-		slog(LG_INFO, "pcommand_init(): block allocator failed.");
-		exit(EXIT_FAILURE);
-	}
+        if (!pcommand_heap) {
+                slog(LG_INFO, "pcommand_init(): block allocator failed.");
+                exit(EXIT_FAILURE);
+        }
 
-	pcommands = mowgli_patricia_create(noopcanon);
+        pcommands = mowgli_patricia_create(noopcanon);
 }
 
 void pcommand_add(const char *token, void (*handler) (sourceinfo_t *si, int parc, char *parv[]), int minparc, int sourcetype)
 {
-	pcommand_t *pcmd;
+        pcommand_t *pcmd;
 
-	if (pcommand_find(token))
-	{
-		slog(LG_INFO, "pcommand_add(): token %s is already registered", token);
-		return;
-	}
+        if (pcommand_find(token)) {
+                slog(LG_INFO, "pcommand_add(): token %s is already registered", token);
+                return;
+        }
 
-	pcmd = mowgli_heap_alloc(pcommand_heap);
-	pcmd->token = sstrdup(token);
-	pcmd->handler = handler;
-	pcmd->minparc = minparc;
-	pcmd->sourcetype = sourcetype;
+        pcmd = mowgli_heap_alloc(pcommand_heap);
+        pcmd->token = sstrdup(token);
+        pcmd->handler = handler;
+        pcmd->minparc = minparc;
+        pcmd->sourcetype = sourcetype;
 
-	mowgli_patricia_add(pcommands, pcmd->token, pcmd);
+        mowgli_patricia_add(pcommands, pcmd->token, pcmd);
 }
 
 void pcommand_delete(const char *token)
 {
-	pcommand_t *pcmd;
+        pcommand_t *pcmd;
 
-	if (!(pcmd = pcommand_find(token)))
-	{
-		slog(LG_INFO, "pcommand_delete(): token %s is not registered", token);
-		return;
-	}
+        if (!(pcmd = pcommand_find(token))) {
+                slog(LG_INFO, "pcommand_delete(): token %s is not registered", token);
+                return;
+        }
 
-	mowgli_patricia_delete(pcommands, pcmd->token);
+        mowgli_patricia_delete(pcommands, pcmd->token);
 
-	free(pcmd->token);
-	pcmd->handler = NULL;
-	mowgli_heap_free(pcommand_heap, pcmd);
+        free(pcmd->token);
+        pcmd->handler = NULL;
+        mowgli_heap_free(pcommand_heap, pcmd);
 }
 
 pcommand_t *pcommand_find(const char *token)
 {
-	return mowgli_patricia_retrieve(pcommands, token);
+        return mowgli_patricia_retrieve(pcommands, token);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

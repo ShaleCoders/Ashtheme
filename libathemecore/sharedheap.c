@@ -24,137 +24,133 @@
 #include "atheme.h"
 
 typedef struct {
-	object_t parent;
+        object_t parent;
 
-	size_t size;
-	mowgli_heap_t *heap;
+        size_t size;
+        mowgli_heap_t *heap;
 
-	mowgli_node_t node;
+        mowgli_node_t node;
 } sharedheap_t;
 
 mowgli_list_t sharedheap_list;
 
 static sharedheap_t *sharedheap_find_by_size(size_t size)
 {
-	mowgli_node_t *n;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, sharedheap_list.head)
-	{
-		sharedheap_t *s = n->data;
+        MOWGLI_ITER_FOREACH(n, sharedheap_list.head) {
+                sharedheap_t *s = n->data;
 
-		if (s->size == size)
-			return s;
-	}
+                if (s->size == size)
+                        return s;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 static sharedheap_t *sharedheap_find_by_heap(mowgli_heap_t *heap)
 {
-	mowgli_node_t *n;
+        mowgli_node_t *n;
 
-	MOWGLI_ITER_FOREACH(n, sharedheap_list.head)
-	{
-		sharedheap_t *s = n->data;
+        MOWGLI_ITER_FOREACH(n, sharedheap_list.head) {
+                sharedheap_t *s = n->data;
 
-		if (s->heap == heap)
-			return s;
-	}
+                if (s->heap == heap)
+                        return s;
+        }
 
-	return NULL;
+        return NULL;
 }
 
 static void sharedheap_destroy(sharedheap_t *s)
 {
-	return_if_fail(s != NULL);
+        return_if_fail(s != NULL);
 
-	mowgli_heap_destroy(s->heap);
-	mowgli_node_delete(&s->node, &sharedheap_list);
+        mowgli_heap_destroy(s->heap);
+        mowgli_node_delete(&s->node, &sharedheap_list);
 
-	free(s);
+        free(s);
 }
 
 static inline size_t sharedheap_prealloc_size(size_t size)
 {
-	size_t page_size, prealloc_size;
+        size_t page_size, prealloc_size;
 
 #ifndef MOWGLI_OS_WIN
-	page_size = sysconf(_SC_PAGESIZE);
+        page_size = sysconf(_SC_PAGESIZE);
 #else
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
+        SYSTEM_INFO si;
+        GetSystemInfo(&si);
 
-	page_size = si.dwPageSize;
+        page_size = si.dwPageSize;
 #endif
 
-	prealloc_size = page_size / size;
+        prealloc_size = page_size / size;
 
 #ifdef LARGE_NETWORK
-	prealloc_size *= 4;
+        prealloc_size *= 4;
 #endif
 
-	return prealloc_size;
+        return prealloc_size;
 }
 
 static inline size_t sharedheap_normalize_size(size_t size)
 {
-	size_t normalized;
+        size_t normalized;
 
-	normalized = ((size / sizeof(void *)) + ((size / sizeof(void *)) % 2)) * sizeof(void *);
+        normalized = ((size / sizeof(void *)) + ((size / sizeof(void *)) % 2)) * sizeof(void *);
 
-	slog(LG_DEBUG, "sharedheap_normalize_size(%zu): normalized=%zu", size, normalized);
+        slog(LG_DEBUG, "sharedheap_normalize_size(%zu): normalized=%zu", size, normalized);
 
-	return normalized;
+        return normalized;
 }
 
 static sharedheap_t *sharedheap_new(size_t size)
 {
-	sharedheap_t *s;
+        sharedheap_t *s;
 
-	s = smalloc(sizeof(sharedheap_t));
-	object_init(object(s), NULL, (destructor_t) sharedheap_destroy);
+        s = smalloc(sizeof(sharedheap_t));
+        object_init(object(s), NULL, (destructor_t) sharedheap_destroy);
 
-	s->size = size;
-	s->heap = mowgli_heap_create(size, sharedheap_prealloc_size(size), BH_NOW);
+        s->size = size;
+        s->heap = mowgli_heap_create(size, sharedheap_prealloc_size(size), BH_NOW);
 
-	mowgli_node_add(s, &s->node, &sharedheap_list);
+        mowgli_node_add(s, &s->node, &sharedheap_list);
 
-	return object_sink_ref(s);
+        return object_sink_ref(s);
 }
 
 mowgli_heap_t *sharedheap_get(size_t size)
 {
-	sharedheap_t *s;
+        sharedheap_t *s;
 
-	size = sharedheap_normalize_size(size);
+        size = sharedheap_normalize_size(size);
 
-	s = sharedheap_find_by_size(size);
+        s = sharedheap_find_by_size(size);
 
-	if (s == NULL)
-	{
-		if ((s = sharedheap_new(size)) == NULL)
-		{
-			slog(LG_DEBUG, "sharedheap_get(%zu): mowgli.heap failure", size);
-			return NULL;
-		}
-	}
+        if (s == NULL) {
+                if ((s = sharedheap_new(size)) == NULL) {
+                        slog(LG_DEBUG, "sharedheap_get(%zu): mowgli.heap failure", size);
+                        return NULL;
+                }
+        }
 
-	soft_assert(s != NULL);
+        soft_assert(s != NULL);
 
-	object_ref(s);
+        object_ref(s);
 
-	return s->heap;
+        return s->heap;
 }
 
 void sharedheap_unref(mowgli_heap_t *heap)
 {
-	sharedheap_t *s;
+        sharedheap_t *s;
 
-	return_if_fail(heap != NULL);
+        return_if_fail(heap != NULL);
 
-	s = sharedheap_find_by_heap(heap);
+        s = sharedheap_find_by_heap(heap);
 
-	return_if_fail(s != NULL);
+        return_if_fail(s != NULL);
 
-	object_unref(s);
+        object_unref(s);
 }

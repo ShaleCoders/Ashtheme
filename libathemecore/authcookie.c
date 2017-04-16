@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * authcookie.c: Remote authentication ticket management
  *
- * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,13 +29,12 @@ mowgli_heap_t *authcookie_heap;
 
 void authcookie_init(void)
 {
-	authcookie_heap = sharedheap_get(sizeof(authcookie_t));
+        authcookie_heap = sharedheap_get(sizeof(authcookie_t));
 
-	if (!authcookie_heap)
-	{
-		slog(LG_ERROR, "authcookie_init(): cannot initialize block allocator.");
-		exit(EXIT_FAILURE);
-	}
+        if (!authcookie_heap) {
+                slog(LG_ERROR, "authcookie_init(): cannot initialize block allocator.");
+                exit(EXIT_FAILURE);
+        }
 }
 
 /*
@@ -52,15 +51,15 @@ void authcookie_init(void)
  */
 authcookie_t *authcookie_create(myuser_t *mu)
 {
-	authcookie_t *au = mowgli_heap_alloc(authcookie_heap);
+        authcookie_t *au = mowgli_heap_alloc(authcookie_heap);
 
-	au->ticket = random_string(20);
-	au->myuser = mu;
-	au->expire = CURRTIME + 3600;
+        au->ticket = random_string(20);
+        au->myuser = mu;
+        au->expire = CURRTIME + 3600;
 
-	mowgli_node_add(au, &au->node, &authcookie_list);
+        mowgli_node_add(au, &au->node, &authcookie_list);
 
-	return au;
+        return au;
 }
 
 /*
@@ -77,45 +76,37 @@ authcookie_t *authcookie_create(myuser_t *mu)
  */
 authcookie_t *authcookie_find(char *ticket, myuser_t *myuser)
 {
-	mowgli_node_t *n;
-	authcookie_t *ac;
+        mowgli_node_t *n;
+        authcookie_t *ac;
 
-	/* at least one must be specified */
-	return_val_if_fail(ticket != NULL || myuser != NULL, NULL);
+        /* at least one must be specified */
+        return_val_if_fail(ticket != NULL || myuser != NULL, NULL);
 
-	if (!myuser)		/* must have ticket */
-	{
-		MOWGLI_ITER_FOREACH(n, authcookie_list.head)
-		{
-			ac = n->data;
+        if (!myuser) {	/* must have ticket */
+                MOWGLI_ITER_FOREACH(n, authcookie_list.head) {
+                        ac = n->data;
 
-			if (!strcmp(ac->ticket, ticket))
-				return ac;
-		}
-	}
-	else if (!ticket)	/* must have myuser */
-	{
-		MOWGLI_ITER_FOREACH(n, authcookie_list.head)
-		{
-			ac = n->data;
+                        if (!strcmp(ac->ticket, ticket))
+                                return ac;
+                }
+        } else if (!ticket) {	/* must have myuser */
+                MOWGLI_ITER_FOREACH(n, authcookie_list.head) {
+                        ac = n->data;
 
-			if (ac->myuser == myuser)
-				return ac;
-		}
-	}
-	else			/* must have both */
-	{
-		MOWGLI_ITER_FOREACH(n, authcookie_list.head)
-		{
-			ac = n->data;
+                        if (ac->myuser == myuser)
+                                return ac;
+                }
+        } else {		/* must have both */
+                MOWGLI_ITER_FOREACH(n, authcookie_list.head) {
+                        ac = n->data;
 
-			if (ac->myuser == myuser
-				&& !strcmp(ac->ticket, ticket))
-				return ac;
-		}
-	}
+                        if (ac->myuser == myuser
+                                        && !strcmp(ac->ticket, ticket))
+                                return ac;
+                }
+        }
 
-	return NULL;
+        return NULL;
 }
 
 /*
@@ -132,11 +123,11 @@ authcookie_t *authcookie_find(char *ticket, myuser_t *myuser)
  */
 void authcookie_destroy(authcookie_t * ac)
 {
-	return_if_fail(ac != NULL);
+        return_if_fail(ac != NULL);
 
-	mowgli_node_delete(&ac->node, &authcookie_list);
-	free(ac->ticket);
-	mowgli_heap_free(authcookie_heap, ac);
+        mowgli_node_delete(&ac->node, &authcookie_list);
+        free(ac->ticket);
+        mowgli_heap_free(authcookie_heap, ac);
 }
 
 /*
@@ -153,16 +144,15 @@ void authcookie_destroy(authcookie_t * ac)
  */
 void authcookie_destroy_all(myuser_t *mu)
 {
-	mowgli_node_t *n, *tn;
-	authcookie_t *ac;
+        mowgli_node_t *n, *tn;
+        authcookie_t *ac;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, authcookie_list.head)
-	{
-		ac = n->data;
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, authcookie_list.head) {
+                ac = n->data;
 
-		if (ac->myuser == mu)
-			authcookie_destroy(ac);
-	}
+                if (ac->myuser == mu)
+                        authcookie_destroy(ac);
+        }
 }
 
 /*
@@ -179,17 +169,16 @@ void authcookie_destroy_all(myuser_t *mu)
  */
 void authcookie_expire(void *arg)
 {
-	authcookie_t *ac;
-	mowgli_node_t *n, *tn;
+        authcookie_t *ac;
+        mowgli_node_t *n, *tn;
 
-	(void)arg;
-        MOWGLI_ITER_FOREACH_SAFE(n, tn, authcookie_list.head)
-	{
-		ac = n->data;
+        (void)arg;
+        MOWGLI_ITER_FOREACH_SAFE(n, tn, authcookie_list.head) {
+                ac = n->data;
 
-		if (ac->expire <= CURRTIME)
-			authcookie_destroy(ac);
-	}
+                if (ac->expire <= CURRTIME)
+                        authcookie_destroy(ac);
+        }
 }
 
 /*
@@ -207,18 +196,17 @@ void authcookie_expire(void *arg)
  */
 bool authcookie_validate(char *ticket, myuser_t *myuser)
 {
-	authcookie_t *ac = authcookie_find(ticket, myuser);
+        authcookie_t *ac = authcookie_find(ticket, myuser);
 
-	if (ac == NULL)
-		return false;
+        if (ac == NULL)
+                return false;
 
-	if (ac->expire <= CURRTIME)
-	{
-		authcookie_destroy(ac);
-		return false;
-	}
+        if (ac->expire <= CURRTIME) {
+                authcookie_destroy(ac);
+                return false;
+        }
 
-	return true;
+        return true;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs
