@@ -22,6 +22,6 @@ If you're still lost, read [INSTALL](INSTALL) for hints.
 ## links / contact
 
  * [GitHub](http://www.github.com/ShaleCoders/Ashtheme)
- * [Website](http://www.letstalkcoding.net)
- * [IRC](irc://irc.letstalkcoding.net/#Ashtheme)
+ * [Website](http://www.chatfreedom.us)
+ * [IRC](irc://irc.chatfreedom.us/#Ashtheme)
 

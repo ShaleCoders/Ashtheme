@@ -80,6 +80,7 @@ struct ConfOption
   unsigned int kline_time;          /* default expire for klines  */
   unsigned int clone_time;          /* default expire for clone exemptions */
   unsigned int commit_interval;     /* interval between commits   */
+  unsigned int vhost_change;        /* days in which a user must wait between vhost changes */
 
   bool silent;               /* stop sending WALLOPS?      */
   bool join_chans;           /* join registered channels?  */

@@ -239,6 +239,15 @@ static void hs_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+        md = metadata_find(si->smu, "private:usercloak-timestamp");
+
+	if (CURRTIME < (time_t)(md + config_options.vhost_change) && config_options.vhost_change > 0)
+	{
+		command_fail(si, fault_noprivs, _("You must wait at least \2%d\2 days between changes to your vHost."),
+			(config_options.vhost_change / 3600 / 24));
+		return;
+	}
+
 	if (request_per_nick)
 	{
 		target = si->su != NULL ? si->su->nick : "?";

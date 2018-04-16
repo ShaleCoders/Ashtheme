@@ -5,8 +5,8 @@ compiler:
 before-install:
 - sudo apt-get update
 install:
-- sudo apt-get install build-essential libssl-dev flex bison
+- sudo apt-get install build-essential libssl-dev flex bison gettext
 script: "./configure && make && make install"
 
 notifications:
-  irc: "irc.letstalkcoding.net#Ashtheme"
+  irc: "irc.chatfreedom.us#Ashtheme"
