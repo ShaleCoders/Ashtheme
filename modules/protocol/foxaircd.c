@@ -14,12 +14,12 @@
 #include "pmodule.h"
 #include "protocol/shadowircd.h"
 
-DECLARE_MODULE_V1("protocol/syntaxircd", true, _modinit, NULL, PACKAGE_STRING, "SyntaxIRCd <root@foxatomic.net>");
+DECLARE_MODULE_V1("protocol/foxaircd", true, _modinit, NULL, PACKAGE_STRING, "foxaIRCd <root@foxatomic.net>");
 
 /* *INDENT-OFF* */
 
-ircd_t syntaxIRCd = {
-    "syntaxIRCd",		        /* IRCd name */
+ircd_t foxaircd = {
+    "foxaircd",		            /* IRCd name */
     "$$",                           /* TLD Prefix, used by Global. */
     true,                           /* Whether or not we use IRCNet/TS6 UID */
     false,                          /* Whether or not we use RCOMMAND */
@@ -44,7 +44,7 @@ ircd_t syntaxIRCd = {
     IRCD_CIDR_BANS | IRCD_HOLDNICK  /* Flags */
 };
 
-struct cmode_ syntaxircd_mode_list[] = {
+struct cmode_ foxaircd_mode_list[] = {
     { 'i', CMODE_INVITE },
     { 'm', CMODE_MOD    },
     { 'n', CMODE_NOEXT  },
@@ -74,7 +74,7 @@ struct cmode_ syntaxircd_mode_list[] = {
     { '\0', 0 }
 };
 
-struct cmode_ syntaxircd_status_mode_list[] = {
+struct cmode_ foxaircd_status_mode_list[] = {
     { 'q', CSTATUS_OWNER },
     { 'a', CSTATUS_PROTECT },
     { 'o', CSTATUS_OP    },
@@ -83,7 +83,7 @@ struct cmode_ syntaxircd_status_mode_list[] = {
     { '\0', 0 }
 };
 
-struct cmode_ syntaxircd_prefix_mode_list[] = {
+struct cmode_ foxaircd_prefix_mode_list[] = {
     { '~', CSTATUS_OWNER },
     { '&', CSTATUS_PROTECT },
     { '@', CSTATUS_OP    },
@@ -92,7 +92,7 @@ struct cmode_ syntaxircd_prefix_mode_list[] = {
     { '\0', 0 }
 };
 
-struct cmode_ syntaxircd_user_mode_list[] = {
+struct cmode_ foxaircd_user_mode_list[] = {
     { 'a', UF_ADMIN    },
     { 'i', UF_INVIS    },
     { 'o', UF_IRCOP    },
@@ -141,15 +141,15 @@ void _modinit(module_t * m)
 {
     MODULE_TRY_REQUEST_DEPENDENCY(m, "protocol/charybdis");
 
-    mode_list = syntaxircd_mode_list;
-    user_mode_list = syntaxircd_user_mode_list;
+    mode_list = foxaircd_mode_list;
+    user_mode_list = foxaircd_user_mode_list;
     join_sts = &dakota_join_sts;
     chan_lowerts = &dakota_chan_lowerts;
-    status_mode_list = syntaxircd_status_mode_list;
-    prefix_mode_list = syntaxircd_prefix_mode_list;
+    status_mode_list = foxaircd_status_mode_list;
+    prefix_mode_list = foxaircd_prefix_mode_list;
     is_valid_host = &dakota_is_valid_host;
 
-    ircd = &syntaxIRCd;
+    ircd = &foxaircd;
 
     m->mflags = MODTYPE_CORE;
 

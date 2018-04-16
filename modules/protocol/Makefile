@@ -14,6 +14,7 @@ SRCS = \
 	base36uid.c	\
 	charybdis.c	\
 	elemental-ircd.c\
+        foxaircd.c      \
 	hybrid.c	\
 	inspircd.c	\
         ircd-seven.c  \
@@ -28,7 +29,7 @@ SRCS = \
 	ratbox.c	\
 	shadowircd.c	\
 	sporksircd.c	\
-        syntaxircd.c    \
+        sircd.c         \
 	ts6-generic.c	\
 	undernet.c	\
 	unreal.c
