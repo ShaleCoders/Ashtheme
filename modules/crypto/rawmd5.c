@@ -11,45 +11,45 @@
 
 DECLARE_MODULE_V1
 (
-	"crypto/rawmd5", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "crypto/rawmd5", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 #define RAWMD5_PREFIX "$rawmd5$"
 
 static const char *rawmd5_crypt_string(const char *key, const char *salt)
 {
-	static char output[2 * 16 + sizeof(RAWMD5_PREFIX)];
-	md5_state_t ctx;
-	unsigned char digest[16];
-	int i;
+    static char output[2 * 16 + sizeof(RAWMD5_PREFIX)];
+    md5_state_t ctx;
+    unsigned char digest[16];
+    int i;
 
-	md5_init(&ctx);
-	md5_append(&ctx, (const unsigned char *)key, strlen(key));
-	md5_finish(&ctx, digest);
+    md5_init(&ctx);
+    md5_append(&ctx, (const unsigned char *)key, strlen(key));
+    md5_finish(&ctx, digest);
 
-	strcpy(output, RAWMD5_PREFIX);
-	for (i = 0; i < 16; i++)
-		sprintf(output + sizeof(RAWMD5_PREFIX) - 1 + i * 2, "%02x",
-				255 & digest[i]);
+    strcpy(output, RAWMD5_PREFIX);
+    for (i = 0; i < 16; i++)
+        sprintf(output + sizeof(RAWMD5_PREFIX) - 1 + i * 2, "%02x",
+                255 & digest[i]);
 
-	return output;
+    return output;
 }
 
 static crypt_impl_t rawmd5_crypt_impl = {
-	.id = "rawmd5",
-	.crypt = &rawmd5_crypt_string,
+    .id = "rawmd5",
+    .crypt = &rawmd5_crypt_string,
 };
 
 void _modinit(module_t *m)
 {
-	crypt_register(&rawmd5_crypt_impl);
+    crypt_register(&rawmd5_crypt_impl);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	crypt_unregister(&rawmd5_crypt_impl);
+    crypt_unregister(&rawmd5_crypt_impl);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

@@ -5,36 +5,36 @@
 
 DECLARE_MODULE_V1
 (
-	"contrib/backtrace", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "contrib/backtrace", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void __segv_hdl(int whocares)
 {
-	void *array[256];
-	char **strings;
-	size_t sz, i;
+    void *array[256];
+    char **strings;
+    size_t sz, i;
 
-	sz = backtrace(array, 256);
-	strings = backtrace_symbols(array, sz);
+    sz = backtrace(array, 256);
+    strings = backtrace_symbols(array, sz);
 
-	slog(LG_INFO, "---------------- [ CRASH ] -----------------");
-	slog(LG_INFO, "%zu stack frames, flags %s", sz, get_conf_opts());
-	for (i = 0; i < sz; i++)
-		slog(LG_INFO, "#%zu --> %p (%s)", i, array[i], strings[i]);
-	slog(LG_INFO, "Report to http://jira.atheme.org/");
-	slog(LG_INFO, "--------------------------------------------");
+    slog(LG_INFO, "---------------- [ CRASH ] -----------------");
+    slog(LG_INFO, "%zu stack frames, flags %s", sz, get_conf_opts());
+    for (i = 0; i < sz; i++)
+        slog(LG_INFO, "#%zu --> %p (%s)", i, array[i], strings[i]);
+    slog(LG_INFO, "Report to http://jira.atheme.org/");
+    slog(LG_INFO, "--------------------------------------------");
 }
 
 void _modinit(module_t *m)
 {
-	signal(SIGSEGV, __segv_hdl);
+    signal(SIGSEGV, __segv_hdl);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	signal(SIGSEGV, NULL);
+    signal(SIGSEGV, NULL);
 }
 #endif
 

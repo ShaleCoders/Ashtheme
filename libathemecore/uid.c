@@ -27,16 +27,16 @@ uid_provider_t *uid_provider_impl = NULL;
 
 void init_uid(void)
 {
-	if (uid_provider_impl != NULL)
-		return uid_provider_impl->uid_init(me.numeric);
+    if (uid_provider_impl != NULL)
+        return uid_provider_impl->uid_init(me.numeric);
 }
 
 const char *uid_get(void)
 {
-	if (uid_provider_impl != NULL)
-		return uid_provider_impl->uid_get();
+    if (uid_provider_impl != NULL)
+        return uid_provider_impl->uid_get();
 
-	return NULL;
+    return NULL;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

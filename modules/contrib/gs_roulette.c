@@ -10,9 +10,9 @@
 
 DECLARE_MODULE_V1
 (
-	"contrib/gs_roulette", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "contrib/gs_roulette", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void command_roulette(sourceinfo_t *si, int parc, char *parv[]);
@@ -21,16 +21,16 @@ command_t cmd_roulette = { "ROULETTE", N_("A game of Russian Roulette."), AC_NON
 
 void _modinit(module_t * m)
 {
-	service_named_bind_command("gameserv", &cmd_roulette);
+    service_named_bind_command("gameserv", &cmd_roulette);
 
-	service_named_bind_command("chanserv", &cmd_roulette);
+    service_named_bind_command("chanserv", &cmd_roulette);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_named_unbind_command("gameserv", &cmd_roulette);
+    service_named_unbind_command("gameserv", &cmd_roulette);
 
-	service_named_unbind_command("chanserv", &cmd_roulette);
+    service_named_unbind_command("chanserv", &cmd_roulette);
 }
 
 /*
@@ -40,31 +40,31 @@ void _moddeinit(module_unload_intent_t intent)
  */
 static void gs_command_report(sourceinfo_t *si, const char *fmt, ...)
 {
-	va_list args;
-	char buf[BUFSIZE];
+    va_list args;
+    char buf[BUFSIZE];
 
-	va_start(args, fmt);
-	vsnprintf(buf, BUFSIZE, fmt, args);
-	va_end(args);
+    va_start(args, fmt);
+    vsnprintf(buf, BUFSIZE, fmt, args);
+    va_end(args);
 
-	if (si->c != NULL)
-		msg(chansvs.nick, si->c->name, "%s", buf);
-	else
-		command_success_nodata(si, "%s", buf);
+    if (si->c != NULL)
+        msg(chansvs.nick, si->c->name, "%s", buf);
+    else
+        command_success_nodata(si, "%s", buf);
 
-	if (!strcasecmp(buf, "*BANG*"))
-		kill_user(si->service->me, si->su, "Lost at Russian Roulette.");
+    if (!strcasecmp(buf, "*BANG*"))
+        kill_user(si->service->me, si->su, "Lost at Russian Roulette.");
 }
 
 static void command_roulette(sourceinfo_t *si, int parc, char *parv[])
 {
-	static const char *roulette_responses[2] = {
-		N_("*BANG*"),
-		N_("*CLICK*")
-	};
+    static const char *roulette_responses[2] = {
+        N_("*BANG*"),
+        N_("*CLICK*")
+    };
 
-	srand(time(NULL));
-	gs_command_report(si, "%s", roulette_responses[rand() % 6 == 0]);
+    srand(time(NULL));
+    gs_command_report(si, "%s", roulette_responses[rand() % 6 == 0]);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

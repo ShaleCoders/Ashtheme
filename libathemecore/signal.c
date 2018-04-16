@@ -45,177 +45,166 @@ static volatile sig_atomic_t got_sighup, got_sigint, got_sigterm, got_sigchld, g
 static void
 signal_empty_handler(int signum)
 {
-	/* do nothing */
+    /* do nothing */
 }
 
 static void
 signal_hup_handler(int signum)
 {
-	got_sighup = 1;
+    got_sighup = 1;
 }
 
 static void
 signal_int_handler(int signum)
 {
-	got_sigint = 1;
+    got_sigint = 1;
 }
 
 static void
 signal_term_handler(int signum)
 {
-	got_sigterm = 1;
+    got_sigterm = 1;
 }
 
 static void
 signal_chld_handler(int signum)
 {
-	got_sigchld = 1;
+    got_sigchld = 1;
 }
 
 static void
 signal_usr2_handler(int signum)
 {
-	got_sigusr2 = 1;
+    got_sigusr2 = 1;
 }
 
 /* XXX */
 static void
 signal_usr1_handler(int signum)
 {
-	int n;
-	if (me.connected && curr_uplink != NULL &&
-		curr_uplink->conn != NULL)
-	{
-		if (chansvs.nick != NULL)
-		{
-			n = send(curr_uplink->conn->fd, ":", 1, 0);
-			n = send(curr_uplink->conn->fd, chansvs.nick, strlen(chansvs.nick), 0);
-			n = send(curr_uplink->conn->fd, " QUIT :Out of memory!\r\n", 23, 0);
-		}
-		n = send(curr_uplink->conn->fd, "ERROR :Panic! Out of memory.\r\n", 30, 0);
-	}
-	if (runflags & (RF_LIVE | RF_STARTING))
-		n = write(2, "Out of memory!\n", 15);
-	abort();
+    int n;
+    if (me.connected && curr_uplink != NULL &&
+        curr_uplink->conn != NULL) {
+        if (chansvs.nick != NULL) {
+            n = send(curr_uplink->conn->fd, ":", 1, 0);
+            n = send(curr_uplink->conn->fd, chansvs.nick, strlen(chansvs.nick), 0);
+            n = send(curr_uplink->conn->fd, " QUIT :Out of memory!\r\n", 23, 0);
+        }
+        n = send(curr_uplink->conn->fd, "ERROR :Panic! Out of memory.\r\n", 30, 0);
+    }
+    if (runflags & (RF_LIVE | RF_STARTING))
+        n = write(2, "Out of memory!\n", 15);
+    abort();
 }
 
 void init_signal_handlers(void)
 {
 #ifndef MOWGLI_OS_WIN
 #ifdef SIGHUP
-	mowgli_signal_install_handler(SIGHUP, signal_hup_handler);
+    mowgli_signal_install_handler(SIGHUP, signal_hup_handler);
 #endif
 
 #ifdef SIGINT
-	mowgli_signal_install_handler(SIGINT, signal_int_handler);
+    mowgli_signal_install_handler(SIGINT, signal_int_handler);
 #endif
 
 #ifdef SIGTERM
-	mowgli_signal_install_handler(SIGTERM, signal_term_handler);
+    mowgli_signal_install_handler(SIGTERM, signal_term_handler);
 #endif
 
 #ifdef SIGPIPE
-	mowgli_signal_install_handler(SIGPIPE, signal_empty_handler);
+    mowgli_signal_install_handler(SIGPIPE, signal_empty_handler);
 #endif
 
 #ifdef SIGCHLD
-	mowgli_signal_install_handler(SIGCHLD, signal_chld_handler);
+    mowgli_signal_install_handler(SIGCHLD, signal_chld_handler);
 #endif
 
 #ifdef SIGUSR1
-	mowgli_signal_install_handler(SIGUSR1, signal_usr1_handler);
+    mowgli_signal_install_handler(SIGUSR1, signal_usr1_handler);
 #endif
 
 #ifdef SIGUSR2
-	mowgli_signal_install_handler(SIGUSR2, signal_usr2_handler);
+    mowgli_signal_install_handler(SIGUSR2, signal_usr2_handler);
 #endif
 #endif
 }
 
 void check_signals(void)
 {
-	/* rehash */
-	if (got_sighup)
-	{
-		got_sighup = 0;
-		slog(LG_INFO, "sighandler(): got SIGHUP, rehashing \2%s\2", config_file);
+    /* rehash */
+    if (got_sighup) {
+        got_sighup = 0;
+        slog(LG_INFO, "sighandler(): got SIGHUP, rehashing \2%s\2", config_file);
 
-		wallops(_("Got SIGHUP; reloading \2%s\2."), config_file);
+        wallops(_("Got SIGHUP; reloading \2%s\2."), config_file);
 
-		if (db_save && !readonly)
-		{
-			slog(LG_INFO, "UPDATE: \2%s\2", "system console");
-			wallops(_("Updating database by request of \2%s\2."), "system console");
-			db_save(NULL);
-		}
+        if (db_save && !readonly) {
+            slog(LG_INFO, "UPDATE: \2%s\2", "system console");
+            wallops(_("Updating database by request of \2%s\2."), "system console");
+            db_save(NULL);
+        }
 
-		slog(LG_INFO, "REHASH: \2%s\2", "system console");
-		wallops(_("Rehashing \2%s\2 by request of \2%s\2."), config_file, "system console");
+        slog(LG_INFO, "REHASH: \2%s\2", "system console");
+        wallops(_("Rehashing \2%s\2 by request of \2%s\2."), config_file, "system console");
 
-		/* reload the config, opening other logs besides the core log if needed. */
-		if (!conf_rehash())
-			wallops(_("REHASH of \2%s\2 failed. Please correct any errors in the file and try again."), config_file);
+        /* reload the config, opening other logs besides the core log if needed. */
+        if (!conf_rehash())
+            wallops(_("REHASH of \2%s\2 failed. Please correct any errors in the file and try again."), config_file);
 
-		return;
-	}
+        return;
+    }
 
-	/* usually caused by ^C */
-	if (got_sigint && (runflags & RF_LIVE))
-	{
-		got_sigint = 0;
-		wallops(_("Exiting on signal %d."), SIGINT);
-		if (chansvs.me != NULL && chansvs.me->me != NULL)
-			quit_sts(chansvs.me->me, "caught interrupt");
-		me.connected = false;
-		slog(LG_INFO, "sighandler(): caught interrupt; exiting...");
-		runflags |= RF_SHUTDOWN;
-	}
-	else if (got_sigint && !(runflags & RF_LIVE))
-	{
-		got_sigint = 0;
-		wallops(_("Got SIGINT; restarting."));
+    /* usually caused by ^C */
+    if (got_sigint && (runflags & RF_LIVE)) {
+        got_sigint = 0;
+        wallops(_("Exiting on signal %d."), SIGINT);
+        if (chansvs.me != NULL && chansvs.me->me != NULL)
+            quit_sts(chansvs.me->me, "caught interrupt");
+        me.connected = false;
+        slog(LG_INFO, "sighandler(): caught interrupt; exiting...");
+        runflags |= RF_SHUTDOWN;
+    } else if (got_sigint && !(runflags & RF_LIVE)) {
+        got_sigint = 0;
+        wallops(_("Got SIGINT; restarting."));
 
-		slog(LG_INFO, "RESTART: \2%s\2", "system console");
-		wallops(_("Restarting by request of \2%s\2."), "system console");
+        slog(LG_INFO, "RESTART: \2%s\2", "system console");
+        wallops(_("Restarting by request of \2%s\2."), "system console");
 
-		runflags |= RF_RESTART;
-	}
+        runflags |= RF_RESTART;
+    }
 
-	if (got_sigterm)
-	{
-		got_sigterm = 0;
-		wallops(_("Exiting on signal %d."), SIGTERM);
-		slog(LG_INFO, "sighandler(): got SIGTERM; exiting...");
-		runflags |= RF_SHUTDOWN;
-	}
+    if (got_sigterm) {
+        got_sigterm = 0;
+        wallops(_("Exiting on signal %d."), SIGTERM);
+        slog(LG_INFO, "sighandler(): got SIGTERM; exiting...");
+        runflags |= RF_SHUTDOWN;
+    }
 
-	if (got_sigusr2)
-	{
-		got_sigusr2 = 0;
-		wallops(_("Got SIGUSR2; restarting."));
+    if (got_sigusr2) {
+        got_sigusr2 = 0;
+        wallops(_("Got SIGUSR2; restarting."));
 
-		slog(LG_INFO, "RESTART: \2%s\2", "system console");
-		wallops(_("Restarting by request of \2%s\2."), "system console");
+        slog(LG_INFO, "RESTART: \2%s\2", "system console");
+        wallops(_("Restarting by request of \2%s\2."), "system console");
 
-		runflags |= RF_RESTART;
-	}
+        runflags |= RF_RESTART;
+    }
 
-	if (got_sigchld)
-	{
-		got_sigchld = 0;
-		childproc_check();
-	}
+    if (got_sigchld) {
+        got_sigchld = 0;
+        childproc_check();
+    }
 }
 
 mowgli_list_t childproc_list;
 
-struct childproc
-{
-	mowgli_node_t node;
-	pid_t pid;
-	char *desc;
-	void (*cb)(pid_t pid, int status, void *data);
-	void *data;
+struct childproc {
+    mowgli_node_t node;
+    pid_t pid;
+    char *desc;
+    void (*cb)(pid_t pid, int status, void *data);
+    void *data;
 };
 
 /* Registers a child process.
@@ -224,20 +213,20 @@ struct childproc
  */
 void childproc_add(pid_t pid, const char *desc, void (*cb)(pid_t pid, int status, void *data), void *data)
 {
-	struct childproc *p;
+    struct childproc *p;
 
-	p = smalloc(sizeof(*p));
-	p->pid = pid;
-	p->desc = sstrdup(desc);
-	p->cb = cb;
-	p->data = data;
-	mowgli_node_add(p, &p->node, &childproc_list);
+    p = smalloc(sizeof(*p));
+    p->pid = pid;
+    p->desc = sstrdup(desc);
+    p->cb = cb;
+    p->data = data;
+    mowgli_node_add(p, &p->node, &childproc_list);
 }
 
 static void childproc_free(struct childproc *p)
 {
-	free(p->desc);
-	free(p);
+    free(p->desc);
+    free(p);
 }
 
 /* Forgets about all child processes with the given callback.
@@ -245,43 +234,38 @@ static void childproc_free(struct childproc *p)
  */
 void childproc_delete_all(void (*cb)(pid_t pid, int status, void *data))
 {
-	mowgli_node_t *n, *tn;
-	struct childproc *p;
+    mowgli_node_t *n, *tn;
+    struct childproc *p;
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, childproc_list.head)
-	{
-		p = n->data;
-		if (p->cb == cb)
-		{
-			mowgli_node_delete(&p->node, &childproc_list);
-			childproc_free(p);
-		}
-	}
+    MOWGLI_ITER_FOREACH_SAFE(n, tn, childproc_list.head) {
+        p = n->data;
+        if (p->cb == cb) {
+            mowgli_node_delete(&p->node, &childproc_list);
+            childproc_free(p);
+        }
+    }
 }
 
 static void childproc_check(void)
 {
 #ifndef MOWGLI_OS_WIN
-	pid_t pid;
-	int status;
-	mowgli_node_t *n;
-	struct childproc *p;
+    pid_t pid;
+    int status;
+    mowgli_node_t *n;
+    struct childproc *p;
 
-	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
-	{
-		MOWGLI_ITER_FOREACH(n, childproc_list.head)
-		{
-			p = n->data;
-			if (p->pid == pid)
-			{
-				mowgli_node_delete(&p->node, &childproc_list);
-				if (p->cb)
-					p->cb(pid, status, p->data);
-				childproc_free(p);
-				break;
-			}
-		}
-	}
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        MOWGLI_ITER_FOREACH(n, childproc_list.head) {
+            p = n->data;
+            if (p->pid == pid) {
+                mowgli_node_delete(&p->node, &childproc_list);
+                if (p->cb)
+                    p->cb(pid, status, p->data);
+                childproc_free(p);
+                break;
+            }
+        }
+    }
 #endif
 }
 

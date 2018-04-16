@@ -14,10 +14,9 @@ DECLARE_MODULE_V1
     "Jamie L. Penman-Smithson <jamie@slacked.org>"
 );
 
-struct procdata
-{
-	char name[NICKLEN];
-	char email[EMAILLEN];
+struct procdata {
+    char name[NICKLEN];
+    char email[EMAILLEN];
 };
 
 #define MAX_CHILDPROCS 10
@@ -44,89 +43,83 @@ void _moddeinit(module_unload_intent_t intent)
 
 static void childproc_cb(pid_t pid, int status, void *data)
 {
-	struct procdata *pd = data;
-	myuser_t *mu;
-	const char *domain;
+    struct procdata *pd = data;
+    myuser_t *mu;
+    const char *domain;
 
-	return_if_fail(proccount > 0);
-	proccount--;
+    return_if_fail(proccount > 0);
+    proccount--;
 
-	if (!WIFEXITED(status))
-		return;
+    if (!WIFEXITED(status))
+        return;
 
-	mu = myuser_find(pd->name);
-	if (mu == NULL || strcmp(pd->email, mu->email))
-		return;
-	domain = strchr(pd->email, '@');
-	if (domain == NULL)
-		return;
-	domain++;
+    mu = myuser_find(pd->name);
+    if (mu == NULL || strcmp(pd->email, mu->email))
+        return;
+    domain = strchr(pd->email, '@');
+    if (domain == NULL)
+        return;
+    domain++;
 
-	if (WEXITSTATUS(status) == 1)
-	{
-		slog(LG_INFO, "REGISTER: mxcheck: no A/MX records for %s - " 
-				"REGISTER failed", domain);
-		myuser_notice(nicksvs.nick, mu, "Sorry, \2%s\2 does not exist, "
-				"I can't send mail there. Please check and try again.", domain);
-		object_unref(mu);
-	}
-	else if (WEXITSTATUS(status) == 0)
-	{
-        	slog(LG_INFO, "REGISTER: mxcheck: valid MX records for %s", domain);
-	}
+    if (WEXITSTATUS(status) == 1) {
+        slog(LG_INFO, "REGISTER: mxcheck: no A/MX records for %s - "
+             "REGISTER failed", domain);
+        myuser_notice(nicksvs.nick, mu, "Sorry, \2%s\2 does not exist, "
+                      "I can't send mail there. Please check and try again.", domain);
+        object_unref(mu);
+    } else if (WEXITSTATUS(status) == 0) {
+        slog(LG_INFO, "REGISTER: mxcheck: valid MX records for %s", domain);
+    }
 }
 
 static void check_registration(hook_user_register_check_t *hdata)
 {
-	char buf[1024];
-	const char *user;
-	const char *domain;
-	int count;
-	pid_t pid;
-	struct procdata *pd;
+    char buf[1024];
+    const char *user;
+    const char *domain;
+    int count;
+    pid_t pid;
+    struct procdata *pd;
 
-	if (hdata->approved)
-		return;
+    if (hdata->approved)
+        return;
 
-	if (proccount >= MAX_CHILDPROCS)
-	{
-		command_fail(hdata->si, fault_toomany, "Sorry, too many registrations in progress. Try again later.");
-		hdata->approved = 1;
-		return;
-	}
-	switch (pid = fork())
-	{
-		case 0: /* child */
-			connection_close_all_fds();
-			mowgli_strlcpy(buf, hdata->email, sizeof buf);
-			user = strtok(buf, "@");
-			domain = strtok(NULL, "@");
-			count = count_mx(domain);
+    if (proccount >= MAX_CHILDPROCS) {
+        command_fail(hdata->si, fault_toomany, "Sorry, too many registrations in progress. Try again later.");
+        hdata->approved = 1;
+        return;
+    }
+    switch (pid = fork()) {
+    case 0: /* child */
+        connection_close_all_fds();
+        mowgli_strlcpy(buf, hdata->email, sizeof buf);
+        user = strtok(buf, "@");
+        domain = strtok(NULL, "@");
+        count = count_mx(domain);
 
-			if (count <= 0)
-			{
-				/* no MX records or error */
-				struct hostent *host;
+        if (count <= 0) {
+            /* no MX records or error */
+            struct hostent *host;
 
-				/* attempt to resolve host (fallback to A) */
-				if((host = gethostbyname(domain)) == NULL)
-					_exit(1);
-			}
-			_exit(0);
-			break;
-		case -1: /* error */
-			slog(LG_ERROR, "fork() failed for check_registration(): %s",
-					strerror(errno));
-			command_fail(hdata->si, fault_toomany, "Sorry, too many registrations in progress. Try again later.");
-			hdata->approved = 1;
-			return;
-		default: /* parent */
-			pd = &procdata[proccount++];
-			mowgli_strlcpy(pd->name, hdata->account, sizeof pd->name);
-			mowgli_strlcpy(pd->email, hdata->email, sizeof pd->email);
-			childproc_add(pid, "ns_mxcheck_async", childproc_cb, pd);
-			return;
-	}
+            /* attempt to resolve host (fallback to A) */
+            if((host = gethostbyname(domain)) == NULL)
+                _exit(1);
+        }
+        _exit(0);
+        break;
+    case -1: /* error */
+        slog(LG_ERROR, "fork() failed for check_registration(): %s",
+             strerror(errno));
+        command_fail(hdata->si, fault_toomany, "Sorry, too many registrations in progress. Try again later.");
+        hdata->approved = 1;
+        return;
+    default: /* parent */
+        pd = &procdata[proccount++];
+        mowgli_strlcpy(pd->name, hdata->account, sizeof pd->name);
+        mowgli_strlcpy(pd->email, hdata->email, sizeof pd->email);
+        childproc_add(pid, "ns_mxcheck_async", childproc_cb, pd);
+        return;
+    }
 }
 
 int count_mx (const char *host)
@@ -136,16 +129,13 @@ int count_mx (const char *host)
     int l;
 
     l = res_query (host, ns_c_any, ns_t_mx, nsbuf, sizeof (nsbuf));
-    if (l < 0) 
-    {
+    if (l < 0) {
         return 0;
-    } 
-    else 
-    {
+    } else {
         ns_initparse (nsbuf, l, &amsg);
         l = ns_msg_count (amsg, ns_s_an);
     }
-    
+
     return l;
 }
 

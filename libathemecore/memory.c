@@ -32,59 +32,59 @@
 /* does malloc()'s job and dies if malloc() fails */
 void *smalloc(size_t size)
 {
-        void *buf = calloc(size, 1);
+    void *buf = calloc(size, 1);
 
-        if (!buf)
-                RAISE_EXCEPTION;
-        return buf;
+    if (!buf)
+        RAISE_EXCEPTION;
+    return buf;
 }
 
 /* does calloc()'s job and dies if calloc() fails */
 void *scalloc(size_t elsize, size_t els)
 {
-        void *buf = calloc(elsize, els);
+    void *buf = calloc(elsize, els);
 
-        if (!buf)
-                RAISE_EXCEPTION;
-        return buf;
+    if (!buf)
+        RAISE_EXCEPTION;
+    return buf;
 }
 
 /* does realloc()'s job and dies if realloc() fails */
 void *srealloc(void *oldptr, size_t newsize)
 {
-        void *buf = realloc(oldptr, newsize);
+    void *buf = realloc(oldptr, newsize);
 
-        if (!buf)
-                RAISE_EXCEPTION;
-        return buf;
+    if (!buf)
+        RAISE_EXCEPTION;
+    return buf;
 }
 
 /* does strdup()'s job, only with the above memory functions */
 char *sstrdup(const char *s)
 {
-	char *t;
+    char *t;
 
-	if (s == NULL)
-		return NULL;
+    if (s == NULL)
+        return NULL;
 
-	t = smalloc(strlen(s) + 1);
+    t = smalloc(strlen(s) + 1);
 
-	strcpy(t, s);
-	return t;
+    strcpy(t, s);
+    return t;
 }
 
 /* does strndup()'s job, only with the above memory functions */
 char *sstrndup(const char *s, int len)
 {
-	char *t;
+    char *t;
 
-	if (s == NULL)
-		return NULL;
+    if (s == NULL)
+        return NULL;
 
-	t = smalloc(len + 1);
+    t = smalloc(len + 1);
 
-	mowgli_strlcpy(t, s, len + 1);
-	return t;
+    mowgli_strlcpy(t, s, len + 1);
+    return t;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

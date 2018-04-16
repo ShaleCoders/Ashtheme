@@ -10,9 +10,9 @@
 
 DECLARE_MODULE_V1
 (
-	"operserv/update", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "operserv/update", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void os_cmd_update(sourceinfo_t *si, int parc, char *parv[]);
@@ -21,23 +21,23 @@ command_t os_update = { "UPDATE", N_("Flushes services database to disk."), PRIV
 
 void _modinit(module_t *m)
 {
-        service_named_bind_command("operserv", &os_update);
+    service_named_bind_command("operserv", &os_update);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_named_unbind_command("operserv", &os_update);
+    service_named_unbind_command("operserv", &os_update);
 }
 
 void os_cmd_update(sourceinfo_t *si, int parc, char *parv[])
 {
-	logcommand(si, CMDLOG_ADMIN, "UPDATE");
-	wallops("Updating database by request of \2%s\2.", get_oper_name(si));
-	expire_check(NULL);
-	if (db_save)
-		db_save(NULL);
-	/* db_save() will wallops/snoop/log the error */
-	command_success_nodata(si, _("UPDATE completed."));
+    logcommand(si, CMDLOG_ADMIN, "UPDATE");
+    wallops("Updating database by request of \2%s\2.", get_oper_name(si));
+    expire_check(NULL);
+    if (db_save)
+        db_save(NULL);
+    /* db_save() will wallops/snoop/log the error */
+    command_success_nodata(si, _("UPDATE completed."));
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

@@ -9,9 +9,9 @@
 
 DECLARE_MODULE_V1
 (
-	"contrib/ns_listlogins", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "contrib/ns_listlogins", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void ns_cmd_listlogins(sourceinfo_t *si, int parc, char *parv[]);
@@ -20,35 +20,33 @@ command_t ns_listlogins = { "LISTLOGINS", N_("Lists details of clients authentic
 
 void _modinit(module_t *m)
 {
-	service_named_bind_command("nickserv", &ns_listlogins);
+    service_named_bind_command("nickserv", &ns_listlogins);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_named_unbind_command("nickserv", &ns_listlogins);
+    service_named_unbind_command("nickserv", &ns_listlogins);
 }
 
 static void ns_cmd_listlogins(sourceinfo_t *si, int parc, char *parv[])
 {
-	user_t *u;
-	mowgli_node_t *n;
-	int matches = 0;
+    user_t *u;
+    mowgli_node_t *n;
+    int matches = 0;
 
-	if (si->smu->flags & MU_WAITAUTH)
-	{
-		command_fail(si, fault_noprivs, _("You have to verify your email address before you can perform this operation."));
-		return;
-	}
+    if (si->smu->flags & MU_WAITAUTH) {
+        command_fail(si, fault_noprivs, _("You have to verify your email address before you can perform this operation."));
+        return;
+    }
 
-	command_success_nodata(si, "Clients identified to account \2%s\2", entity(si->smu)->name);
-	MOWGLI_ITER_FOREACH(n, si->smu->logins.head)
-	{
-		u = n->data;
-		command_success_nodata(si, "- %s!%s@%s (real host: %s)", u->nick, u->user, u->vhost, u->host);
-		matches++;
-	}
-	command_success_nodata(si, ngettext(N_("\2%d\2 client found"), N_("\2%d\2 clients found"), matches), matches);
-	logcommand(si, CMDLOG_GET, "LISTLOGINS: (\2%d\2 matches)", matches);
+    command_success_nodata(si, "Clients identified to account \2%s\2", entity(si->smu)->name);
+    MOWGLI_ITER_FOREACH(n, si->smu->logins.head) {
+        u = n->data;
+        command_success_nodata(si, "- %s!%s@%s (real host: %s)", u->nick, u->user, u->vhost, u->host);
+        matches++;
+    }
+    command_success_nodata(si, ngettext(N_("\2%d\2 client found"), N_("\2%d\2 clients found"), matches), matches);
+    logcommand(si, CMDLOG_GET, "LISTLOGINS: (\2%d\2 matches)", matches);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

@@ -11,9 +11,9 @@
 
 DECLARE_MODULE_V1
 (
-	"operserv/raw", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "operserv/raw", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void os_cmd_raw(sourceinfo_t *si, int parc, char *parv[]);
@@ -22,30 +22,29 @@ command_t os_raw = { "RAW", N_("Sends data to the uplink."), PRIV_ADMIN, 1, os_c
 
 void _modinit(module_t *m)
 {
-        service_named_bind_command("operserv", &os_raw);
+    service_named_bind_command("operserv", &os_raw);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_named_unbind_command("operserv", &os_raw);
+    service_named_unbind_command("operserv", &os_raw);
 }
 
 static void os_cmd_raw(sourceinfo_t *si, int parc, char *parv[])
 {
-	char *s = parv[0];
+    char *s = parv[0];
 
-	if (!config_options.raw)
-		return;
+    if (!config_options.raw)
+        return;
 
-	if (!s)
-	{
-		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "RAW");
-		command_fail(si, fault_needmoreparams, _("Syntax: RAW <parameters>"));
-		return;
-	}
+    if (!s) {
+        command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "RAW");
+        command_fail(si, fault_needmoreparams, _("Syntax: RAW <parameters>"));
+        return;
+    }
 
-	logcommand(si, CMDLOG_ADMIN, "RAW: \2%s\2", s);
-	sts("%s", s);
+    logcommand(si, CMDLOG_ADMIN, "RAW: \2%s\2", s);
+    sts("%s", s);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

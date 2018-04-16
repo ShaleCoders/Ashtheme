@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * auth.c: Authentication.
  *
- * Copyright (c) 2005-2009 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2009 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,59 +28,53 @@ bool (*auth_user_custom)(myuser_t *mu, const char *password);
 
 void set_password(myuser_t *mu, const char *newpassword)
 {
-	if (mu == NULL || newpassword == NULL)
-		return;
+    if (mu == NULL || newpassword == NULL)
+        return;
 
-	/* if we can, try to crypt it */
-	if (crypto_module_loaded)
-	{
-		mu->flags |= MU_CRYPTPASS;
-		mowgli_strlcpy(mu->pass, crypt_string(newpassword, gen_salt()), PASSLEN);
-	}
-	else
-	{
-		mu->flags &= ~MU_CRYPTPASS;			/* just in case */
-		mowgli_strlcpy(mu->pass, newpassword, PASSLEN);
-	}
+    /* if we can, try to crypt it */
+    if (crypto_module_loaded) {
+        mu->flags |= MU_CRYPTPASS;
+        mowgli_strlcpy(mu->pass, crypt_string(newpassword, gen_salt()), PASSLEN);
+    } else {
+        mu->flags &= ~MU_CRYPTPASS;			/* just in case */
+        mowgli_strlcpy(mu->pass, newpassword, PASSLEN);
+    }
 }
 
 bool verify_password(myuser_t *mu, const char *password)
 {
-	if (mu == NULL || password == NULL)
-		return false;
+    if (mu == NULL || password == NULL)
+        return false;
 
-	if (auth_module_loaded && auth_user_custom)
-		return auth_user_custom(mu, password);
+    if (auth_module_loaded && auth_user_custom)
+        return auth_user_custom(mu, password);
 
-	if (mu->flags & MU_CRYPTPASS)
-		if (crypto_module_loaded)
-		{
-			const crypt_impl_t *ci, *ci_default;
+    if (mu->flags & MU_CRYPTPASS)
+        if (crypto_module_loaded) {
+            const crypt_impl_t *ci, *ci_default;
 
-			ci = crypt_verify_password(password, mu->pass);
-			if (ci == NULL)
-				return false;
+            ci = crypt_verify_password(password, mu->pass);
+            if (ci == NULL)
+                return false;
 
-			if (ci != NULL && ci != (ci_default = crypt_get_default_provider()))
-			{
-				slog(LG_INFO, "verify_password(): transitioning from crypt scheme '%s' to '%s' for account '%s'",
-					      ci->id, ci_default->id, entity(mu)->name);
+            if (ci != NULL && ci != (ci_default = crypt_get_default_provider())) {
+                slog(LG_INFO, "verify_password(): transitioning from crypt scheme '%s' to '%s' for account '%s'",
+                     ci->id, ci_default->id, entity(mu)->name);
 
-				mowgli_strlcpy(mu->pass, ci_default->crypt(password, ci_default->salt()), PASSLEN);
-			}
+                mowgli_strlcpy(mu->pass, ci_default->crypt(password, ci_default->salt()), PASSLEN);
+            }
 
-			return true;
-		}
-		else
-		{	/* not good!
-			 * but don't complain about crypted password '*',
-			 * this is supposed to never match
-			 */
-			if (strcmp(password, "*"))
-				slog(LG_ERROR, "check_password(): can't check crypted password -- no crypto module!");
-			return false;
-		}
-	else
-		return (strcmp(mu->pass, password) == 0);
+            return true;
+        } else {
+            /* not good!
+             * but don't complain about crypted password '*',
+             * this is supposed to never match
+             */
+            if (strcmp(password, "*"))
+                slog(LG_ERROR, "check_password(): can't check crypted password -- no crypto module!");
+            return false;
+        }
+    else
+        return (strcmp(mu->pass, password) == 0);
 }
 

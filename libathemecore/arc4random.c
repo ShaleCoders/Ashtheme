@@ -33,9 +33,9 @@
 #ifndef HAVE_ARC4RANDOM
 
 struct arc4_stream {
-	unsigned char i;
-	unsigned char j;
-	unsigned char s[256];
+    unsigned char i;
+    unsigned char j;
+    unsigned char s[256];
 };
 
 #define	RANDOMDEV	"/dev/urandom"
@@ -51,136 +51,136 @@ static void arc4_stir(struct arc4_stream *);
 static inline void
 arc4_init(struct arc4_stream *as)
 {
-	int     n;
+    int     n;
 
-	for (n = 0; n < 256; n++)
-		as->s[n] = n;
-	as->i = 0;
-	as->j = 0;
+    for (n = 0; n < 256; n++)
+        as->s[n] = n;
+    as->i = 0;
+    as->j = 0;
 }
 
 static inline void
 arc4_addrandom(struct arc4_stream *as, unsigned char *dat, int datlen)
 {
-	int     n;
-	unsigned char si;
+    int     n;
+    unsigned char si;
 
-	as->i--;
-	for (n = 0; n < 256; n++) {
-		as->i = (as->i + 1);
-		si = as->s[as->i];
-		as->j = (as->j + si + dat[n % datlen]);
-		as->s[as->i] = as->s[as->j];
-		as->s[as->j] = si;
-	}
+    as->i--;
+    for (n = 0; n < 256; n++) {
+        as->i = (as->i + 1);
+        si = as->s[as->i];
+        as->j = (as->j + si + dat[n % datlen]);
+        as->s[as->i] = as->s[as->j];
+        as->s[as->j] = si;
+    }
 }
 
 static void
 arc4_stir(struct arc4_stream *as)
 {
-	int     fd, n;
-	struct {
-		struct timeval tv;
-		pid_t pid;
-		unsigned char rnd[128 - sizeof(struct timeval) - sizeof(pid_t)];
-	}       rdat;
+    int     fd, n;
+    struct {
+        struct timeval tv;
+        pid_t pid;
+        unsigned char rnd[128 - sizeof(struct timeval) - sizeof(pid_t)];
+    }       rdat;
 
-	gettimeofday(&rdat.tv, NULL);
-	rdat.pid = getpid();
-	fd = open(RANDOMDEV, O_RDONLY, 0);
-	if (fd >= 0) {
-		n = read(fd, rdat.rnd, sizeof(rdat.rnd));
-		close(fd);
-	} 
-	/* fd < 0?  Ah, what the heck. We'll just take whatever was on the
-	 * stack... */
+    gettimeofday(&rdat.tv, NULL);
+    rdat.pid = getpid();
+    fd = open(RANDOMDEV, O_RDONLY, 0);
+    if (fd >= 0) {
+        n = read(fd, rdat.rnd, sizeof(rdat.rnd));
+        close(fd);
+    }
+    /* fd < 0?  Ah, what the heck. We'll just take whatever was on the
+     * stack... */
 
-	arc4_addrandom(as, (void *) &rdat, sizeof(rdat));
+    arc4_addrandom(as, (void *) &rdat, sizeof(rdat));
 
-	/*
-	 * Throw away the first N bytes of output, as suggested in the
-	 * paper "Weaknesses in the Key Scheduling Algorithm of RC4"
-	 * by Fluher, Mantin, and Shamir.  N=1024 is based on
-	 * suggestions in the paper "(Not So) Random Shuffles of RC4"
-	 * by Ilya Mironov.
-	 */
-	for (n = 0; n < 1024; n++)
-		(void) arc4_getbyte(as);
-	arc4_count = 400000;
+    /*
+     * Throw away the first N bytes of output, as suggested in the
+     * paper "Weaknesses in the Key Scheduling Algorithm of RC4"
+     * by Fluher, Mantin, and Shamir.  N=1024 is based on
+     * suggestions in the paper "(Not So) Random Shuffles of RC4"
+     * by Ilya Mironov.
+     */
+    for (n = 0; n < 1024; n++)
+        (void) arc4_getbyte(as);
+    arc4_count = 400000;
 }
 
 static inline unsigned char
 arc4_getbyte(struct arc4_stream *as)
 {
-	unsigned char si, sj;
+    unsigned char si, sj;
 
-	as->i = (as->i + 1);
-	si = as->s[as->i];
-	as->j = (as->j + si);
-	sj = as->s[as->j];
-	as->s[as->i] = sj;
-	as->s[as->j] = si;
+    as->i = (as->i + 1);
+    si = as->s[as->i];
+    as->j = (as->j + si);
+    sj = as->s[as->j];
+    as->s[as->i] = sj;
+    as->s[as->j] = si;
 
-	return (as->s[(si + sj) & 0xff]);
+    return (as->s[(si + sj) & 0xff]);
 }
 
 static inline unsigned int
 arc4_getword(struct arc4_stream *as)
 {
-	unsigned int val;
+    unsigned int val;
 
-	val = arc4_getbyte(as) << 24;
-	val |= arc4_getbyte(as) << 16;
-	val |= arc4_getbyte(as) << 8;
-	val |= arc4_getbyte(as);
+    val = arc4_getbyte(as) << 24;
+    val |= arc4_getbyte(as) << 16;
+    val |= arc4_getbyte(as) << 8;
+    val |= arc4_getbyte(as);
 
-	return (val);
+    return (val);
 }
 
 static void
 arc4_check_init(void)
 {
-	if (rs_initialized)
-		return;
+    if (rs_initialized)
+        return;
 
-	arc4_init(&rs);
-	rs_initialized = 1;
+    arc4_init(&rs);
+    rs_initialized = 1;
 }
 
 static void
 arc4_check_stir(void)
 {
-	if (!rs_stired || --arc4_count == 0) {
-		arc4_stir(&rs);
-		rs_stired = 1;
-	}
+    if (!rs_stired || --arc4_count == 0) {
+        arc4_stir(&rs);
+        rs_stired = 1;
+    }
 }
 
 void
 arc4random_stir(void)
 {
-	arc4_check_init();
-	arc4_stir(&rs);
+    arc4_check_init();
+    arc4_stir(&rs);
 }
 
 void
 arc4random_addrandom(unsigned char *dat, int datlen)
 {
-	arc4_check_init();
-	arc4_check_stir();
-	arc4_addrandom(&rs, dat, datlen);
+    arc4_check_init();
+    arc4_check_stir();
+    arc4_addrandom(&rs, dat, datlen);
 }
 
 unsigned int
 arc4random(void)
 {
-	unsigned int rnd;
+    unsigned int rnd;
 
-	arc4_check_init();
-	arc4_check_stir();
-	rnd = arc4_getword(&rs);
+    arc4_check_init();
+    arc4_check_stir();
+    rnd = arc4_getword(&rs);
 
-	return (rnd);
+    return (rnd);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

@@ -26,28 +26,27 @@ static bool (*parent_command_authorize)(service_t *svs, sourceinfo_t *si, comman
 
 static bool cmdperm_command_authorize(service_t *svs, sourceinfo_t *si, command_t *c, const char *userlevel)
 {
-	char permbuf[BUFSIZE], *cp;
+    char permbuf[BUFSIZE], *cp;
 
-	snprintf(permbuf, sizeof permbuf, "command:%s:%s", svs->internal_name, c->name);
-	for (cp = permbuf; *cp != '\0'; cp++)
-		*cp = ToLower(*cp);
+    snprintf(permbuf, sizeof permbuf, "command:%s:%s", svs->internal_name, c->name);
+    for (cp = permbuf; *cp != '\0'; cp++)
+        *cp = ToLower(*cp);
 
-	if (!has_priv(si, permbuf))
-	{
-		logaudit_denycmd(si, c, permbuf);
-		return false;
-	}
+    if (!has_priv(si, permbuf)) {
+        logaudit_denycmd(si, c, permbuf);
+        return false;
+    }
 
-	return parent_command_authorize(svs, si, c, userlevel);
+    return parent_command_authorize(svs, si, c, userlevel);
 }
 
 void _modinit(module_t *m)
 {
-	parent_command_authorize = command_authorize;
-	command_authorize = cmdperm_command_authorize;
+    parent_command_authorize = command_authorize;
+    command_authorize = cmdperm_command_authorize;
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	command_authorize = parent_command_authorize;
+    command_authorize = parent_command_authorize;
 }

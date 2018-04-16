@@ -12,9 +12,9 @@
 
 DECLARE_MODULE_V1
 (
-	"nickserv/set_password", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "nickserv/set_password", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 mowgli_patricia_t **ns_set_cmdtree;
@@ -25,54 +25,50 @@ command_t ns_set_password = { "PASSWORD", N_("Changes the password associated wi
 
 void _modinit(module_t *m)
 {
-	MODULE_TRY_REQUEST_SYMBOL(m, ns_set_cmdtree, "nickserv/set_core", "ns_set_cmdtree");
+    MODULE_TRY_REQUEST_SYMBOL(m, ns_set_cmdtree, "nickserv/set_core", "ns_set_cmdtree");
 
-	command_add(&ns_set_password, *ns_set_cmdtree);
+    command_add(&ns_set_password, *ns_set_cmdtree);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	command_delete(&ns_set_password, *ns_set_cmdtree);
+    command_delete(&ns_set_password, *ns_set_cmdtree);
 }
 
 /* SET PASSWORD <password> */
 static void ns_cmd_set_password(sourceinfo_t *si, int parc, char *parv[])
 {
-	char *password = parv[0];
+    char *password = parv[0];
 
-	if (auth_module_loaded)
-	{
-		command_fail(si, fault_noprivs, _("You must change the password in the external system."));
-		return;
-	}
+    if (auth_module_loaded) {
+        command_fail(si, fault_noprivs, _("You must change the password in the external system."));
+        return;
+    }
 
-	if (!password)
-	{
-		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "PASSWORD");
-		return;
-	}
+    if (!password) {
+        command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "PASSWORD");
+        return;
+    }
 
-	if (strlen(password) >= PASSLEN)
-	{
-		command_fail(si, fault_badparams, STR_INVALID_PARAMS, "PASSWORD");
-		command_fail(si, fault_badparams, _("Registration passwords may not be longer than \2%d\2 characters."), PASSLEN - 1);
-		return;
-	}
+    if (strlen(password) >= PASSLEN) {
+        command_fail(si, fault_badparams, STR_INVALID_PARAMS, "PASSWORD");
+        command_fail(si, fault_badparams, _("Registration passwords may not be longer than \2%d\2 characters."), PASSLEN - 1);
+        return;
+    }
 
-	if (!strcasecmp(password, entity(si->smu)->name))
-	{
-		command_fail(si, fault_badparams, _("You cannot use your nickname as a password."));
-		command_fail(si, fault_badparams, _("Syntax: SET PASSWORD <new password>"));
-		return;
-	}
+    if (!strcasecmp(password, entity(si->smu)->name)) {
+        command_fail(si, fault_badparams, _("You cannot use your nickname as a password."));
+        command_fail(si, fault_badparams, _("Syntax: SET PASSWORD <new password>"));
+        return;
+    }
 
-	logcommand(si, CMDLOG_SET, "SET:PASSWORD");
+    logcommand(si, CMDLOG_SET, "SET:PASSWORD");
 
-	set_password(si->smu, password);
+    set_password(si->smu, password);
 
-	command_success_nodata(si, _("The password for \2%s\2 has been changed to \2%s\2."), entity(si->smu)->name, password);
+    command_success_nodata(si, _("The password for \2%s\2 has been changed to \2%s\2."), entity(si->smu)->name, password);
 
-	return;
+    return;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

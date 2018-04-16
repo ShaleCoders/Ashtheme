@@ -26,143 +26,130 @@
 
 int sjtoken(char *message, char delimiter, char **parv)
 {
-	char *next;
-	unsigned int count;
+    char *next;
+    unsigned int count;
 
-	if (!message)
-		return 0;
+    if (!message)
+        return 0;
 
-	/* now we take the beginning of the message and find all the spaces...
-	 * set them to \0 and use 'next' to go through the string
-	 */
-	next = message;
+    /* now we take the beginning of the message and find all the spaces...
+     * set them to \0 and use 'next' to go through the string
+     */
+    next = message;
 
-	/* eat any additional delimiters */
-	while (*next == delimiter)
-		next++;
+    /* eat any additional delimiters */
+    while (*next == delimiter)
+        next++;
 
-	parv[0] = next;
-	count = 1;
+    parv[0] = next;
+    count = 1;
 
-	while (*next)
-	{
-		/* this is fine here, since we don't have a :delimited
-		 * parameter like tokenize
-		 */
+    while (*next) {
+        /* this is fine here, since we don't have a :delimited
+         * parameter like tokenize
+         */
 
-		if (count == 256)
-		{
-			/* we've reached our limit */
-			slog(LG_DEBUG, "sjtokenize(): reached param limit");
-			return count;
-		}
+        if (count == 256) {
+            /* we've reached our limit */
+            slog(LG_DEBUG, "sjtokenize(): reached param limit");
+            return count;
+        }
 
-		if (*next == delimiter)
-		{
-			*next = '\0';
-			next++;
-			/* eat any additional delimiters */
-			while (*next == delimiter)
-				next++;
-			/* if it's the end of the string, it's simply
-			 ** an extra space at the end.  here we break.
-			 */
-			if (*next == '\0')
-				break;
+        if (*next == delimiter) {
+            *next = '\0';
+            next++;
+            /* eat any additional delimiters */
+            while (*next == delimiter)
+                next++;
+            /* if it's the end of the string, it's simply
+             ** an extra space at the end.  here we break.
+             */
+            if (*next == '\0')
+                break;
 
-			/* if it happens to be a stray \r, break too */
-			if (*next == '\r')
-				break;
+            /* if it happens to be a stray \r, break too */
+            if (*next == '\r')
+                break;
 
-			parv[count] = next;
-			count++;
-		}
-		else
-			next++;
-	}
+            parv[count] = next;
+            count++;
+        } else
+            next++;
+    }
 
-	return count;
+    return count;
 }
 
 /* this splits apart a message with origin and command picked off already */
 int tokenize(char *message, char **parv)
 {
-	char *pos = NULL;
-	char *next;
-	unsigned int count = 0;
+    char *pos = NULL;
+    char *next;
+    unsigned int count = 0;
 
-	if (!message)
-		return -1;
+    if (!message)
+        return -1;
 
-	/* first we fid out of there's a : in the message, save that string
-	 * somewhere so we can set it to the last param in parv
-	 * also make sure there's a space before it... if not then we're screwed
-	 */
-	pos = message;
-	while (true)
-	{
-		if ((pos = strchr(pos, ':')))
-		{
-			pos--;
-			if (*pos != ' ')
-			{
-				pos += 2;
-				continue;
-			}
-			*pos = '\0';
-			pos++;
-			*pos = '\0';
-			pos++;
-			break;
-		}
-		else
-			break;
-	}
+    /* first we fid out of there's a : in the message, save that string
+     * somewhere so we can set it to the last param in parv
+     * also make sure there's a space before it... if not then we're screwed
+     */
+    pos = message;
+    while (true) {
+        if ((pos = strchr(pos, ':'))) {
+            pos--;
+            if (*pos != ' ') {
+                pos += 2;
+                continue;
+            }
+            *pos = '\0';
+            pos++;
+            *pos = '\0';
+            pos++;
+            break;
+        } else
+            break;
+    }
 
-	/* now we take the beginning of the message and find all the spaces...
-	 * set them to \0 and use 'next' to go through the string
-	 */
+    /* now we take the beginning of the message and find all the spaces...
+     * set them to \0 and use 'next' to go through the string
+     */
 
-	next = message;
-	parv[0] = message;
-	count = 1;
+    next = message;
+    parv[0] = message;
+    count = 1;
 
-	while (*next)
-	{
-		if (count == MAXPARC)
-		{
-			/* we've reached one less than our max limit
-			 * to handle the parameter we already ripped off
-			 */
-			slog(LG_DEBUG, "tokenize(): reached para limit");
-			return count;
-		}
-		if (*next == ' ')
-		{
-			*next = '\0';
-			next++;
-			/* eat any additional spaces */
-			while (*next == ' ')
-				next++;
-			/* if it's the end of the string, it's simply
-			 * an extra space before the :parameter. break.
-			 */
-			if (*next == '\0')
-				break;
-			parv[count] = next;
-			count++;
-		}
-		else
-			next++;
-	}
+    while (*next) {
+        if (count == MAXPARC) {
+            /* we've reached one less than our max limit
+             * to handle the parameter we already ripped off
+             */
+            slog(LG_DEBUG, "tokenize(): reached para limit");
+            return count;
+        }
+        if (*next == ' ') {
+            *next = '\0';
+            next++;
+            /* eat any additional spaces */
+            while (*next == ' ')
+                next++;
+            /* if it's the end of the string, it's simply
+             * an extra space before the :parameter. break.
+             */
+            if (*next == '\0')
+                break;
+            parv[count] = next;
+            count++;
+        } else
+            next++;
+    }
 
-	if (pos)
-	{
-		parv[count] = pos;
-		count++;
-	}
+    if (pos) {
+        parv[count] = pos;
+        count++;
+    }
 
-	return count;
+    return count;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

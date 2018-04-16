@@ -13,9 +13,9 @@
  * Please read COPYING and README for furhter details.
  *
  * Based on the original code of Epona by Lara.
- * Based on the original code of Services by Andy Church. 
- * 
- * $\Id: myencrypt.c 5 2004-03-29 01:29:50Z dane $ 
+ * Based on the original code of Services by Andy Church.
+ *
+ * $\Id: myencrypt.c 5 2004-03-29 01:29:50Z dane $
  *
  */
 
@@ -66,7 +66,7 @@ static int myencrypt(const char *src, int len, char *dest, int size)
     /* convert to hex, skipping last 8 bytes (constant) -- jilles */
     strcpy(dest, "$ircservices$");
     for (i = 0; i <= 7; i++)
-	sprintf(dest + 13 + 2 * i, "%02x", 255 & dest2[i]);
+        sprintf(dest + 13 + 2 * i, "%02x", 255 & dest2[i]);
     return 0;
 
 #else
@@ -108,44 +108,40 @@ static int check_password(const char *plaintext, const char *password)
 
 DECLARE_MODULE_V1
 (
-	"crypto/ircservices", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Jilles Tjoelker <jilles@stack.nl>"
+    "crypto/ircservices", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Jilles Tjoelker <jilles@stack.nl>"
 );
 
 static const char *ircservices_crypt_string(const char *key, const char *salt)
 {
-	static char output[PASSMAX];
-	if (salt[0] == '$' && salt[1] == '1') /* this is a new pw XXX */
-	{
-		myencrypt(key, strlen(key), output, PASSMAX);
-		return output;
-	}
-	else
-	{
-		if (check_password(key, salt))
-			return salt;
-		else
-		{
-			output[0] = '\0';
-			return output;
-		}
-	}
+    static char output[PASSMAX];
+    if (salt[0] == '$' && salt[1] == '1') { /* this is a new pw XXX */
+        myencrypt(key, strlen(key), output, PASSMAX);
+        return output;
+    } else {
+        if (check_password(key, salt))
+            return salt;
+        else {
+            output[0] = '\0';
+            return output;
+        }
+    }
 }
 
 static crypt_impl_t ircservices_crypt_impl = {
-	.id = "ircservices",
-	.crypt = &ircservices_crypt_string,
+    .id = "ircservices",
+    .crypt = &ircservices_crypt_string,
 };
 
 void _modinit(module_t *m)
 {
-	crypt_register(&ircservices_crypt_impl);
+    crypt_register(&ircservices_crypt_impl);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	crypt_unregister(&ircservices_crypt_impl);
+    crypt_unregister(&ircservices_crypt_impl);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

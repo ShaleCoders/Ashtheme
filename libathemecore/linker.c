@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * linker.c: Abstraction of the dynamic linking system.
  *
- * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -47,30 +47,29 @@
  */
 mowgli_module_t *linker_open_ext(const char *path, char *errbuf, int errlen)
 {
-	size_t len = strlen(path) + 20;
-	char *buf = smalloc(len);
-	void *ret;
+    size_t len = strlen(path) + 20;
+    char *buf = smalloc(len);
+    void *ret;
 
-	mowgli_strlcpy(buf, path, len);
+    mowgli_strlcpy(buf, path, len);
 
-	if (!strstr(buf, PLATFORM_SUFFIX))
-		mowgli_strlcat(buf, PLATFORM_SUFFIX, len);
+    if (!strstr(buf, PLATFORM_SUFFIX))
+        mowgli_strlcat(buf, PLATFORM_SUFFIX, len);
 
-	/* Don't try to open a file that doesn't exist. */
-	struct stat s;
-	if (0 != stat(buf, &s))
-	{
-		mowgli_strlcpy(errbuf, strerror(errno), errlen);
-		return NULL;
-	}
+    /* Don't try to open a file that doesn't exist. */
+    struct stat s;
+    if (0 != stat(buf, &s)) {
+        mowgli_strlcpy(errbuf, strerror(errno), errlen);
+        return NULL;
+    }
 
-	ret = mowgli_module_open(buf);
-	free(buf);
+    ret = mowgli_module_open(buf);
+    free(buf);
 
-	if (!ret)
-		mowgli_strlcpy(errbuf, "mowgli_module_open() failed", errlen);
+    if (!ret)
+        mowgli_strlcpy(errbuf, "mowgli_module_open() failed", errlen);
 
-	return ret;
+    return ret;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

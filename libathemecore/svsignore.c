@@ -45,19 +45,19 @@ mowgli_list_t svs_ignore_list;
  */
 svsignore_t *svsignore_add(const char *mask, const char *reason)
 {
-        svsignore_t *svsignore;
-        mowgli_node_t *n = mowgli_node_create();
+    svsignore_t *svsignore;
+    mowgli_node_t *n = mowgli_node_create();
 
-        svsignore = smalloc(sizeof(svsignore_t));
-                        
-        mowgli_node_add(svsignore, n, &svs_ignore_list);
-        
-        svsignore->mask = sstrdup(mask);
-        svsignore->settime = CURRTIME;
-        svsignore->reason = sstrdup(reason);
-        cnt.svsignore++;
-         
-        return svsignore;
+    svsignore = smalloc(sizeof(svsignore_t));
+
+    mowgli_node_add(svsignore, n, &svs_ignore_list);
+
+    svsignore->mask = sstrdup(mask);
+    svsignore->settime = CURRTIME;
+    svsignore->reason = sstrdup(reason);
+    cnt.svsignore++;
+
+    return svsignore;
 }
 
 /*
@@ -74,32 +74,31 @@ svsignore_t *svsignore_add(const char *mask, const char *reason)
  *
  * Side Effects:
  *     - none
- */                
+ */
 svsignore_t *svsignore_find(user_t *source)
-{       
-        svsignore_t *svsignore;
-        mowgli_node_t *n;
-        char host[BUFSIZE];
+{
+    svsignore_t *svsignore;
+    mowgli_node_t *n;
+    char host[BUFSIZE];
 
-	if (!use_svsignore)
-		return NULL;
-
-        *host = '\0';
-        mowgli_strlcpy(host, source->nick, BUFSIZE);
-        mowgli_strlcat(host, "!", BUFSIZE);
-        mowgli_strlcat(host, source->user, BUFSIZE);
-        mowgli_strlcat(host, "@", BUFSIZE);
-        mowgli_strlcat(host, source->host, BUFSIZE);
-                
-        MOWGLI_ITER_FOREACH(n, svs_ignore_list.head)
-        {
-                svsignore = (svsignore_t *)n->data;
-        
-                if (!match(svsignore->mask, host))
-                        return svsignore;
-        }
-
+    if (!use_svsignore)
         return NULL;
+
+    *host = '\0';
+    mowgli_strlcpy(host, source->nick, BUFSIZE);
+    mowgli_strlcat(host, "!", BUFSIZE);
+    mowgli_strlcat(host, source->user, BUFSIZE);
+    mowgli_strlcat(host, "@", BUFSIZE);
+    mowgli_strlcat(host, source->host, BUFSIZE);
+
+    MOWGLI_ITER_FOREACH(n, svs_ignore_list.head) {
+        svsignore = (svsignore_t *)n->data;
+
+        if (!match(svsignore->mask, host))
+            return svsignore;
+    }
+
+    return NULL;
 }
 
 /*
@@ -118,14 +117,14 @@ svsignore_t *svsignore_find(user_t *source)
  */
 void svsignore_delete(svsignore_t *svsignore)
 {
-	mowgli_node_t *n;
+    mowgli_node_t *n;
 
-	n = mowgli_node_find(svsignore, &svs_ignore_list);
-	mowgli_node_delete(n, &svs_ignore_list);
+    n = mowgli_node_find(svsignore, &svs_ignore_list);
+    mowgli_node_delete(n, &svs_ignore_list);
 
-	free(svsignore->mask);
-	free(svsignore->reason);
-	free(svsignore);
+    free(svsignore->mask);
+    free(svsignore->reason);
+    free(svsignore);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

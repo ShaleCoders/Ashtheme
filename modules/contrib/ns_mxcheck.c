@@ -43,23 +43,19 @@ static void check_registration(hook_user_register_check_t *hdata)
     domain = strtok(NULL, "@");
     count = count_mx(domain);
 
-    if (count > 0)
-    {
+    if (count > 0) {
         /* there are MX records for this domain */
         slog(LG_INFO, "REGISTER: mxcheck: %d MX records for %s", count, domain);
-    }
-    else
-    {
+    } else {
         /* no MX records or error */
         struct hostent *host;
 
         /* attempt to resolve host (fallback to A) */
-        if((host = gethostbyname(domain)) == NULL)
-        {
-            slog(LG_INFO, "REGISTER: mxcheck: no A/MX records for %s - " 
-                "REGISTER failed", domain);
+        if((host = gethostbyname(domain)) == NULL) {
+            slog(LG_INFO, "REGISTER: mxcheck: no A/MX records for %s - "
+                 "REGISTER failed", domain);
             command_fail(hdata->si, fault_noprivs, "Sorry, \2%s\2 does not exist, "
-                "I can't send mail there. Please check and try again.", domain);
+                         "I can't send mail there. Please check and try again.", domain);
             hdata->approved = 1;
             return;
         }
@@ -73,16 +69,13 @@ int count_mx (const char *host)
     int l;
 
     l = res_query (host, ns_c_any, ns_t_mx, nsbuf, sizeof (nsbuf));
-    if (l < 0) 
-    {
+    if (l < 0) {
         return 0;
-    } 
-    else 
-    {
+    } else {
         ns_initparse (nsbuf, l, &amsg);
         l = ns_msg_count (amsg, ns_s_an);
     }
-    
+
     return l;
 }
 

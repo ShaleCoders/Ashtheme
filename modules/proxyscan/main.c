@@ -26,10 +26,10 @@ static service_t *proxyscan = NULL;
 
 void _modinit(module_t *m)
 {
-	proxyscan = service_add("proxyscan", NULL);
+    proxyscan = service_add("proxyscan", NULL);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_delete(proxyscan);
+    service_delete(proxyscan);
 }

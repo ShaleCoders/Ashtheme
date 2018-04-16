@@ -10,9 +10,9 @@
 
 DECLARE_MODULE_V1
 (
-	"helpserv/main", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "helpserv/main", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 service_t *helpserv;
@@ -24,43 +24,41 @@ command_t helpserv_help = { "HELP", N_(N_("Displays contextual help information.
 /* HELP <command> [params] */
 void helpserv_cmd_help(sourceinfo_t *si, int parc, char *parv[])
 {
-	char *command = parv[0];
+    char *command = parv[0];
 
-	if (!command)
-	{
-		command_success_nodata(si, _("***** \2%s Help\2 *****"), si->service->nick);
-		command_success_nodata(si, _("\2%s\2 allows users to request help from network staff."), si->service->nick);
-		command_success_nodata(si, " ");
-		command_success_nodata(si, _("For more information on a command, type:"));
-		command_success_nodata(si, "\2/%s%s help <command>\2", (ircd->uses_rcommand == false) ? "msg " : "", helpserv->disp);
-		command_success_nodata(si, " ");
+    if (!command) {
+        command_success_nodata(si, _("***** \2%s Help\2 *****"), si->service->nick);
+        command_success_nodata(si, _("\2%s\2 allows users to request help from network staff."), si->service->nick);
+        command_success_nodata(si, " ");
+        command_success_nodata(si, _("For more information on a command, type:"));
+        command_success_nodata(si, "\2/%s%s help <command>\2", (ircd->uses_rcommand == false) ? "msg " : "", helpserv->disp);
+        command_success_nodata(si, " ");
 
-		command_help(si, si->service->commands);
+        command_help(si, si->service->commands);
 
-		command_success_nodata(si, _("***** \2End of Help\2 *****"));
-		return;
-	}
+        command_success_nodata(si, _("***** \2End of Help\2 *****"));
+        return;
+    }
 
-	/* take the command through the hash table */
-	help_display(si, si->service, command, si->service->commands);
+    /* take the command through the hash table */
+    help_display(si, si->service, command, si->service->commands);
 }
 
 void _modinit(module_t *m)
 {
-	helpserv = service_add("helpserv", NULL);
+    helpserv = service_add("helpserv", NULL);
 
-	service_bind_command(helpserv, &helpserv_help);
+    service_bind_command(helpserv, &helpserv_help);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_unbind_command(helpserv, &helpserv_help);
+    service_unbind_command(helpserv, &helpserv_help);
 
-	if (helpserv)
-	{
-		service_delete(helpserv);
-		helpserv = NULL;
-	}
+    if (helpserv) {
+        service_delete(helpserv);
+        helpserv = NULL;
+    }
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

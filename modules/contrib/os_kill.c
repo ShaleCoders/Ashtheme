@@ -14,9 +14,9 @@
 
 DECLARE_MODULE_V1
 (
-	"contrib/os_kill", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "contrib/os_kill", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void os_cmd_kill(sourceinfo_t *si, int parc, char *parv[]);
@@ -25,32 +25,30 @@ command_t os_kill = { "KILL", "Kill a user with Services.", PRIV_OMODE, 2, os_cm
 
 void _modinit(module_t *m)
 {
-	service_named_bind_command("operserv", &os_kill);
+    service_named_bind_command("operserv", &os_kill);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_named_unbind_command("operserv", &os_kill);
+    service_named_unbind_command("operserv", &os_kill);
 }
 
 static void os_cmd_kill(sourceinfo_t *si, int parc, char *parv[])
 {
-	user_t *target;
+    user_t *target;
 
-	if(!parv[0] || !parv[1])
-	{
-		command_fail(si, fault_badparams, "Usage: \2KILL\2 <target> <reason>");
-		return;
-	}
+    if(!parv[0] || !parv[1]) {
+        command_fail(si, fault_badparams, "Usage: \2KILL\2 <target> <reason>");
+        return;
+    }
 
-	if(!(target = user_find_named(parv[0])))
-	{
-		command_fail(si, fault_nosuch_target, "\2%s\2 is not on the network", parv[0]);
-		return;
-	}
+    if(!(target = user_find_named(parv[0]))) {
+        command_fail(si, fault_nosuch_target, "\2%s\2 is not on the network", parv[0]);
+        return;
+    }
 
-	logcommand(si, CMDLOG_ADMIN, "KILL: \2%s\2 (reason: \2%s\2)", target->nick, parv[1]);
-	command_success_nodata(si, "\2%s\2 has been killed.", target->nick);
+    logcommand(si, CMDLOG_ADMIN, "KILL: \2%s\2 (reason: \2%s\2)", target->nick, parv[1]);
+    command_success_nodata(si, "\2%s\2 has been killed.", target->nick);
 
-	kill_user(si->service->me, target, "Requested: %s", parv[1]);
+    kill_user(si->service->me, target, "Requested: %s", parv[1]);
 }

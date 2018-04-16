@@ -25,65 +25,62 @@
 
 mowgli_patricia_t *strshare_dict;
 
-typedef struct
-{
-	int refcount;
+typedef struct {
+    int refcount;
 } strshare_t;
 
 void strshare_init(void)
 {
-	strshare_dict = mowgli_patricia_create(noopcanon);
+    strshare_dict = mowgli_patricia_create(noopcanon);
 }
 
 stringref strshare_get(const char *str)
 {
-	strshare_t *ss;
+    strshare_t *ss;
 
-	if (str == NULL)
-		return NULL;
+    if (str == NULL)
+        return NULL;
 
-	ss = mowgli_patricia_retrieve(strshare_dict, str);
-	if (ss != NULL)
-		ss->refcount++;
-	else
-	{
-		ss = smalloc(sizeof(strshare_t) + strlen(str) + 1);
-		ss->refcount = 1;
-		strcpy((char *)(ss + 1), str);
-		mowgli_patricia_add(strshare_dict, (char *)(ss + 1), ss);
-	}
-	return (char *)(ss + 1);
+    ss = mowgli_patricia_retrieve(strshare_dict, str);
+    if (ss != NULL)
+        ss->refcount++;
+    else {
+        ss = smalloc(sizeof(strshare_t) + strlen(str) + 1);
+        ss->refcount = 1;
+        strcpy((char *)(ss + 1), str);
+        mowgli_patricia_add(strshare_dict, (char *)(ss + 1), ss);
+    }
+    return (char *)(ss + 1);
 }
 
 stringref strshare_ref(stringref str)
 {
-	strshare_t *ss;
+    strshare_t *ss;
 
-	if (str == NULL)
-		return NULL;
+    if (str == NULL)
+        return NULL;
 
-	/* intermediate cast to suppress gcc -Wcast-qual */
-	ss = (strshare_t *)(uintptr_t)str - 1;
-	ss->refcount++;
+    /* intermediate cast to suppress gcc -Wcast-qual */
+    ss = (strshare_t *)(uintptr_t)str - 1;
+    ss->refcount++;
 
-	return str;
+    return str;
 }
 
 void strshare_unref(stringref str)
 {
-	strshare_t *ss;
+    strshare_t *ss;
 
-	if (str == NULL)
-		return;
+    if (str == NULL)
+        return;
 
-	/* intermediate cast to suppress gcc -Wcast-qual */
-	ss = (strshare_t *)(uintptr_t)str - 1;
-	ss->refcount--;
-	if (ss->refcount == 0)
-	{
-		mowgli_patricia_delete(strshare_dict, str);
-		free(ss);
-	}
+    /* intermediate cast to suppress gcc -Wcast-qual */
+    ss = (strshare_t *)(uintptr_t)str - 1;
+    ss->refcount--;
+    if (ss->refcount == 0) {
+        mowgli_patricia_delete(strshare_dict, str);
+        free(ss);
+    }
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

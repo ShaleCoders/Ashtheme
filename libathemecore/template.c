@@ -28,112 +28,106 @@ mowgli_patricia_t *global_template_dict = NULL;
 
 void fix_global_template_flags(void)
 {
-	default_template_t *def_t;
-	mowgli_patricia_iteration_state_t state;
+    default_template_t *def_t;
+    mowgli_patricia_iteration_state_t state;
 
-	MOWGLI_PATRICIA_FOREACH(def_t, &state, global_template_dict)
-	{
-		def_t->flags &= ca_all;
-	}
+    MOWGLI_PATRICIA_FOREACH(def_t, &state, global_template_dict) {
+        def_t->flags &= ca_all;
+    }
 }
 
 void set_global_template_flags(const char *name, unsigned int flags)
 {
-	default_template_t *def_t;
+    default_template_t *def_t;
 
-	if (global_template_dict == NULL)
-		global_template_dict = mowgli_patricia_create(strcasecanon);
+    if (global_template_dict == NULL)
+        global_template_dict = mowgli_patricia_create(strcasecanon);
 
-	def_t = mowgli_patricia_retrieve(global_template_dict, name);
-	if (def_t != NULL)
-	{
-		def_t->flags = flags;
-		return;
-	}
+    def_t = mowgli_patricia_retrieve(global_template_dict, name);
+    if (def_t != NULL) {
+        def_t->flags = flags;
+        return;
+    }
 
-	def_t = smalloc(sizeof(default_template_t));
-	def_t->flags = flags;
-	mowgli_patricia_add(global_template_dict, name, def_t);
+    def_t = smalloc(sizeof(default_template_t));
+    def_t->flags = flags;
+    mowgli_patricia_add(global_template_dict, name, def_t);
 
-	slog(LG_DEBUG, "set_global_template_flags(): add %s", name);
+    slog(LG_DEBUG, "set_global_template_flags(): add %s", name);
 }
 
 unsigned int get_global_template_flags(const char *name)
 {
-	default_template_t *def_t;
+    default_template_t *def_t;
 
-	if (global_template_dict == NULL)
-		global_template_dict = mowgli_patricia_create(strcasecanon);
+    if (global_template_dict == NULL)
+        global_template_dict = mowgli_patricia_create(strcasecanon);
 
-	def_t = mowgli_patricia_retrieve(global_template_dict, name);
-	if (def_t == NULL)
-		return 0;
+    def_t = mowgli_patricia_retrieve(global_template_dict, name);
+    if (def_t == NULL)
+        return 0;
 
-	return def_t->flags;
+    return def_t->flags;
 }
 
 static void release_global_template_data(const char *key, void *data, void *privdata)
 {
-	slog(LG_DEBUG, "release_global_template_data(): delete %s", key);
+    slog(LG_DEBUG, "release_global_template_data(): delete %s", key);
 
-	free(data);
+    free(data);
 }
 
 void clear_global_template_flags(void)
 {
-	if (global_template_dict == NULL)
-		return;
+    if (global_template_dict == NULL)
+        return;
 
-	mowgli_patricia_destroy(global_template_dict, release_global_template_data, NULL);	
-	global_template_dict = NULL;
+    mowgli_patricia_destroy(global_template_dict, release_global_template_data, NULL);
+    global_template_dict = NULL;
 }
 
 /* name1=value1 name2=value2 name3=value3... */
 const char *getitem(const char *str, const char *name)
 {
-	char *p;
-	static char result[300];
-	int l;
+    char *p;
+    static char result[300];
+    int l;
 
-	l = strlen(name);
-	for (;;)
-	{
-		p = strchr(str, '=');
-		if (p == NULL)
-			return NULL;
-		if (p - str == l && !strncasecmp(str, name, p - str))
-		{
-			mowgli_strlcpy(result, p, sizeof result);
-			p = strchr(result, ' ');
-			if (p != NULL)
-				*p = '\0';
-			return result;
-		}
-		str = strchr(p, ' ');
-		if (str == NULL)
-			return NULL;
-		while (*str == ' ')
-			str++;
-	}
+    l = strlen(name);
+    for (;;) {
+        p = strchr(str, '=');
+        if (p == NULL)
+            return NULL;
+        if (p - str == l && !strncasecmp(str, name, p - str)) {
+            mowgli_strlcpy(result, p, sizeof result);
+            p = strchr(result, ' ');
+            if (p != NULL)
+                *p = '\0';
+            return result;
+        }
+        str = strchr(p, ' ');
+        if (str == NULL)
+            return NULL;
+        while (*str == ' ')
+            str++;
+    }
 }
 
 unsigned int get_template_flags(mychan_t *mc, const char *name)
 {
-	metadata_t *md;
-	const char *d;
+    metadata_t *md;
+    const char *d;
 
-	if (mc != NULL)
-	{
-		md = metadata_find(mc, "private:templates");
-		if (md != NULL)
-		{
-			d = getitem(md->value, name);
-			if (d != NULL)
-				return flags_to_bitmask(d, 0);
-		}
-	}
+    if (mc != NULL) {
+        md = metadata_find(mc, "private:templates");
+        if (md != NULL) {
+            d = getitem(md->value, name);
+            if (d != NULL)
+                return flags_to_bitmask(d, 0);
+        }
+    }
 
-	return get_global_template_flags(name);
+    return get_global_template_flags(name);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

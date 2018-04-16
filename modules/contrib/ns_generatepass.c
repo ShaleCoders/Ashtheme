@@ -10,42 +10,43 @@
 
 DECLARE_MODULE_V1
 (
-	"contrib/ns_generatepass", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Epiphanic Networks <http://www.epiphanic.org>"
+    "contrib/ns_generatepass", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Epiphanic Networks <http://www.epiphanic.org>"
 );
 
 static void ns_cmd_generatepass(sourceinfo_t *si, int parc, char *parv[]);
 
 command_t ns_generatepass = { "GENERATEPASS", "Generates a random password.",
-                        AC_NONE, 1, ns_cmd_generatepass, { .path = "contrib/generatepass" } };
-                                                                                   
+                              AC_NONE, 1, ns_cmd_generatepass, { .path = "contrib/generatepass" }
+                            };
+
 void _modinit(module_t *m)
 {
-	service_named_bind_command("nickserv", &ns_generatepass);
+    service_named_bind_command("nickserv", &ns_generatepass);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	service_named_unbind_command("nickserv", &ns_generatepass);
+    service_named_unbind_command("nickserv", &ns_generatepass);
 }
 
 static void ns_cmd_generatepass(sourceinfo_t *si, int parc, char *parv[])
 {
-	int n = 0;
-	char *newpass;
-   
-	if (parc >= 1)
-		n = atoi(parv[0]);
+    int n = 0;
+    char *newpass;
 
-	if (n <= 0 || n > 127)
-		n = 7;
+    if (parc >= 1)
+        n = atoi(parv[0]);
 
-	newpass = random_string(n);
+    if (n <= 0 || n > 127)
+        n = 7;
 
-	command_success_string(si, newpass, "Randomly generated password: %s", newpass);
-	free(newpass);
-	logcommand(si, CMDLOG_GET, "GENERATEPASS");
+    newpass = random_string(n);
+
+    command_success_string(si, newpass, "Randomly generated password: %s", newpass);
+    free(newpass);
+    logcommand(si, CMDLOG_GET, "GENERATEPASS");
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

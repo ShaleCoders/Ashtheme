@@ -1,5 +1,5 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * cidr.c: CIDR matching.
  *
  * Most code in this file has been copied from ratbox, src/match.c and
@@ -8,7 +8,7 @@
  *
  * Copyright (c) 1996-2002 Hybrid Development Team
  * Copyright (c) 2002-2005 ircd-ratbox development team
- * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -44,16 +44,14 @@
 static int
 comp_with_mask(void *addr, void *dest, u_int mask)
 {
-	if (memcmp(addr, dest, mask / 8) == 0)
-	{
-		int n = mask / 8;
-		int m = ((-1) << (8 - (mask % 8)));
-		if (mask % 8 == 0 || (((u_char *) addr)[n] & m) == (((u_char *) dest)[n] & m))
-		{
-			return (1);
-		}
-	}
-	return (0);
+    if (memcmp(addr, dest, mask / 8) == 0) {
+        int n = mask / 8;
+        int m = ((-1) << (8 - (mask % 8)));
+        if (mask % 8 == 0 || (((u_char *) addr)[n] & m) == (((u_char *) dest)[n] & m)) {
+            return (1);
+        }
+    }
+    return (0);
 }
 
 /*
@@ -92,43 +90,37 @@ comp_with_mask(void *addr, void *dest, u_int mask)
 static int
 inet_pton4(const char *src, u_char *dst)
 {
-	int saw_digit, octets, ch;
-	u_char tmp[INADDRSZ], *tp;
+    int saw_digit, octets, ch;
+    u_char tmp[INADDRSZ], *tp;
 
-	saw_digit = 0;
-	octets = 0;
-	*(tp = tmp) = 0;
-	while((ch = *src++) != '\0')
-	{
+    saw_digit = 0;
+    octets = 0;
+    *(tp = tmp) = 0;
+    while((ch = *src++) != '\0') {
 
-		if(ch >= '0' && ch <= '9')
-		{
-			u_int new = *tp * 10 + (ch - '0');
+        if(ch >= '0' && ch <= '9') {
+            u_int new = *tp * 10 + (ch - '0');
 
-			if(new > 255)
-				return (0);
-			*tp = new;
-			if(!saw_digit)
-			{
-				if(++octets > 4)
-					return (0);
-				saw_digit = 1;
-			}
-		}
-		else if(ch == '.' && saw_digit)
-		{
-			if(octets == 4)
-				return (0);
-			*++tp = 0;
-			saw_digit = 0;
-		}
-		else
-			return (0);
-	}
-	if(octets < 4)
-		return (0);
-	memcpy(dst, tmp, INADDRSZ);
-	return (1);
+            if(new > 255)
+                return (0);
+            *tp = new;
+            if(!saw_digit) {
+                if(++octets > 4)
+                    return (0);
+                saw_digit = 1;
+            }
+        } else if(ch == '.' && saw_digit) {
+            if(octets == 4)
+                return (0);
+            *++tp = 0;
+            saw_digit = 0;
+        } else
+            return (0);
+    }
+    if(octets < 4)
+        return (0);
+    memcpy(dst, tmp, INADDRSZ);
+    return (1);
 }
 
 /* int
@@ -147,100 +139,88 @@ inet_pton4(const char *src, u_char *dst)
 static int
 inet_pton6(const char *src, u_char *dst)
 {
-	static const char xdigits[] = "0123456789abcdef";
-	u_char tmp[IN6ADDRSZ], *tp, *endp, *colonp;
-	const char *curtok;
-	int ch, saw_xdigit;
-	u_int val;
+    static const char xdigits[] = "0123456789abcdef";
+    u_char tmp[IN6ADDRSZ], *tp, *endp, *colonp;
+    const char *curtok;
+    int ch, saw_xdigit;
+    u_int val;
 
-	tp = memset(tmp, '\0', IN6ADDRSZ);
-	endp = tp + IN6ADDRSZ;
-	colonp = NULL;
-	/* Leading :: requires some special handling. */
-	if(*src == ':')
-		if(*++src != ':')
-			return (0);
-	curtok = src;
-	saw_xdigit = 0;
-	val = 0;
-	while((ch = tolower(*src++)) != '\0')
-	{
-		const char *pch;
+    tp = memset(tmp, '\0', IN6ADDRSZ);
+    endp = tp + IN6ADDRSZ;
+    colonp = NULL;
+    /* Leading :: requires some special handling. */
+    if(*src == ':')
+        if(*++src != ':')
+            return (0);
+    curtok = src;
+    saw_xdigit = 0;
+    val = 0;
+    while((ch = tolower(*src++)) != '\0') {
+        const char *pch;
 
-		pch = strchr(xdigits, ch);
-		if(pch != NULL)
-		{
-			val <<= 4;
-			val |= (pch - xdigits);
-			if(val > 0xffff)
-				return (0);
-			saw_xdigit = 1;
-			continue;
-		}
-		if(ch == ':')
-		{
-			curtok = src;
-			if(!saw_xdigit)
-			{
-				if(colonp)
-					return (0);
-				colonp = tp;
-				continue;
-			}
-			else if(*src == '\0')
-			{
-				return (0);
-			}
-			if(tp + INT16SZ > endp)
-				return (0);
-			*tp++ = (u_char) (val >> 8) & 0xff;
-			*tp++ = (u_char) val & 0xff;
-			saw_xdigit = 0;
-			val = 0;
-			continue;
-		}
-		if(*src != '\0' && ch == '.')
-		{
-			if(((tp + INADDRSZ) <= endp) && inet_pton4(curtok, tp) > 0)
-			{
-				tp += INADDRSZ;
-				saw_xdigit = 0;
-				break;	/* '\0' was seen by inet_pton4(). */
-			}
-		}
-		else
-			continue;
-		return (0);
-	}
-	if(saw_xdigit)
-	{
-		if(tp + INT16SZ > endp)
-			return (0);
-		*tp++ = (u_char) (val >> 8) & 0xff;
-		*tp++ = (u_char) val & 0xff;
-	}
-	if(colonp != NULL)
-	{
-		/*
-		 * Since some memmove()'s erroneously fail to handle
-		 * overlapping regions, we'll do the shift by hand.
-		 */
-		const int n = tp - colonp;
-		int i;
+        pch = strchr(xdigits, ch);
+        if(pch != NULL) {
+            val <<= 4;
+            val |= (pch - xdigits);
+            if(val > 0xffff)
+                return (0);
+            saw_xdigit = 1;
+            continue;
+        }
+        if(ch == ':') {
+            curtok = src;
+            if(!saw_xdigit) {
+                if(colonp)
+                    return (0);
+                colonp = tp;
+                continue;
+            } else if(*src == '\0') {
+                return (0);
+            }
+            if(tp + INT16SZ > endp)
+                return (0);
+            *tp++ = (u_char) (val >> 8) & 0xff;
+            *tp++ = (u_char) val & 0xff;
+            saw_xdigit = 0;
+            val = 0;
+            continue;
+        }
+        if(*src != '\0' && ch == '.') {
+            if(((tp + INADDRSZ) <= endp) && inet_pton4(curtok, tp) > 0) {
+                tp += INADDRSZ;
+                saw_xdigit = 0;
+                break;	/* '\0' was seen by inet_pton4(). */
+            }
+        } else
+            continue;
+        return (0);
+    }
+    if(saw_xdigit) {
+        if(tp + INT16SZ > endp)
+            return (0);
+        *tp++ = (u_char) (val >> 8) & 0xff;
+        *tp++ = (u_char) val & 0xff;
+    }
+    if(colonp != NULL) {
+        /*
+         * Since some memmove()'s erroneously fail to handle
+         * overlapping regions, we'll do the shift by hand.
+         */
+        const int n = tp - colonp;
+        int i;
 
-		if(tp == endp)
-			return (0);
-		for(i = 1; i <= n; i++)
-		{
-			endp[-i] = colonp[n - i];
-			colonp[n - i] = 0;
-		}
-		tp = endp;
-	}
-	if(tp != endp)
-		return (0);
-	memcpy(dst, tmp, IN6ADDRSZ);
-	return (1);
+        if(tp == endp)
+            return (0);
+        for(i = 1; i <= n; i++) {
+            endp[-i] = colonp[n - i];
+            colonp[n - i] = 0;
+        }
+        tp = endp;
+    }
+    if(tp != endp)
+        return (0);
+    memcpy(dst, tmp, IN6ADDRSZ);
+    return (1);
 }
 
 /*
@@ -252,50 +232,46 @@ inet_pton6(const char *src, u_char *dst)
  */
 int match_ips(const char *s1, const char *s2)
 {
-	unsigned char ipaddr[IN6ADDRSZ], maskaddr[IN6ADDRSZ];
-	char ipmask[BUFSIZE];
-	char ip[HOSTLEN + 1];
-	char *len;
-	int cidrlen;
+    unsigned char ipaddr[IN6ADDRSZ], maskaddr[IN6ADDRSZ];
+    char ipmask[BUFSIZE];
+    char ip[HOSTLEN + 1];
+    char *len;
+    int cidrlen;
 
-	if (s1 == NULL || s2 == NULL)
-		return 1;
+    if (s1 == NULL || s2 == NULL)
+        return 1;
 
-	mowgli_strlcpy(ipmask, s1, sizeof ipmask);
-	mowgli_strlcpy(ip, s2, sizeof ip);
+    mowgli_strlcpy(ipmask, s1, sizeof ipmask);
+    mowgli_strlcpy(ip, s2, sizeof ip);
 
-	len = strrchr(ipmask, '/');
-	if (len == NULL)
-		return 1;
+    len = strrchr(ipmask, '/');
+    if (len == NULL)
+        return 1;
 
-	*len++ = '\0';
+    *len++ = '\0';
 
-	cidrlen = atoi(len);
-	if (cidrlen == 0)
-		return 1;
+    cidrlen = atoi(len);
+    if (cidrlen == 0)
+        return 1;
 
-	if (strchr(ip, ':') && strchr(ipmask, ':'))
-	{
-		if (cidrlen > 128)
-			return 1;
-		if (!inet_pton6(ip, ipaddr))
-			return 1;
-		if (!inet_pton6(ipmask, maskaddr))
-			return 1;
-		return !comp_with_mask(ipaddr, maskaddr, cidrlen);
-	}
-	else if (!strchr(ip, ':') && !strchr(ipmask, ':'))
-	{
-		if (cidrlen > 32)
-			return 1;
-		if (!inet_pton4(ip, ipaddr))
-			return 1;
-		if (!inet_pton4(ipmask, maskaddr))
-			return 1;
-		return !comp_with_mask(ipaddr, maskaddr, cidrlen);
-	}
-	else
-		return 1;
+    if (strchr(ip, ':') && strchr(ipmask, ':')) {
+        if (cidrlen > 128)
+            return 1;
+        if (!inet_pton6(ip, ipaddr))
+            return 1;
+        if (!inet_pton6(ipmask, maskaddr))
+            return 1;
+        return !comp_with_mask(ipaddr, maskaddr, cidrlen);
+    } else if (!strchr(ip, ':') && !strchr(ipmask, ':')) {
+        if (cidrlen > 32)
+            return 1;
+        if (!inet_pton4(ip, ipaddr))
+            return 1;
+        if (!inet_pton4(ipmask, maskaddr))
+            return 1;
+        return !comp_with_mask(ipaddr, maskaddr, cidrlen);
+    } else
+        return 1;
 }
 
 /* match_cidr()
@@ -307,62 +283,58 @@ int match_ips(const char *s1, const char *s2)
 int
 match_cidr(const char *s1, const char *s2)
 {
-	unsigned char ipaddr[IN6ADDRSZ], maskaddr[IN6ADDRSZ];
-	char mask[BUFSIZE];
-	char address[NICKLEN + USERLEN + HOSTLEN + 6];
-	char *ipmask;
-	char *ip;
-	char *len;
-	int cidrlen;
+    unsigned char ipaddr[IN6ADDRSZ], maskaddr[IN6ADDRSZ];
+    char mask[BUFSIZE];
+    char address[NICKLEN + USERLEN + HOSTLEN + 6];
+    char *ipmask;
+    char *ip;
+    char *len;
+    int cidrlen;
 
-	mowgli_strlcpy(mask, s1, sizeof mask);
-	mowgli_strlcpy(address, s2, sizeof address);
+    mowgli_strlcpy(mask, s1, sizeof mask);
+    mowgli_strlcpy(address, s2, sizeof address);
 
-	ipmask = strrchr(mask, '@');
-	if (ipmask == NULL)
-		return 1;
+    ipmask = strrchr(mask, '@');
+    if (ipmask == NULL)
+        return 1;
 
-	*ipmask++ = '\0';
+    *ipmask++ = '\0';
 
-	ip = strrchr(address, '@');
-	if (ip == NULL)
-		return 1;
-	*ip++ = '\0';
+    ip = strrchr(address, '@');
+    if (ip == NULL)
+        return 1;
+    *ip++ = '\0';
 
-	len = strrchr(ipmask, '/');
-	if (len == NULL)
-		return 1;
+    len = strrchr(ipmask, '/');
+    if (len == NULL)
+        return 1;
 
-	*len++ = '\0';
+    *len++ = '\0';
 
-	cidrlen = atoi(len);
-	if (cidrlen == 0)
-		return 1;
+    cidrlen = atoi(len);
+    if (cidrlen == 0)
+        return 1;
 
-	if (strchr(ip, ':') && strchr(ipmask, ':'))
-	{
-		if (cidrlen > 128)
-			return 1;
-		if (!inet_pton6(ip, ipaddr))
-			return 1;
-		if (!inet_pton6(ipmask, maskaddr))
-			return 1;
-		return !comp_with_mask(ipaddr, maskaddr, cidrlen) ||
-			match(mask, address);
-	}
-	else if (!strchr(ip, ':') && !strchr(ipmask, ':'))
-	{
-		if (cidrlen > 32)
-			return 1;
-		if (!inet_pton4(ip, ipaddr))
-			return 1;
-		if (!inet_pton4(ipmask, maskaddr))
-			return 1;
-		return !comp_with_mask(ipaddr, maskaddr, cidrlen) ||
-			match(mask, address);
-	}
-	else
-		return 1;
+    if (strchr(ip, ':') && strchr(ipmask, ':')) {
+        if (cidrlen > 128)
+            return 1;
+        if (!inet_pton6(ip, ipaddr))
+            return 1;
+        if (!inet_pton6(ipmask, maskaddr))
+            return 1;
+        return !comp_with_mask(ipaddr, maskaddr, cidrlen) ||
+               match(mask, address);
+    } else if (!strchr(ip, ':') && !strchr(ipmask, ':')) {
+        if (cidrlen > 32)
+            return 1;
+        if (!inet_pton4(ip, ipaddr))
+            return 1;
+        if (!inet_pton4(ipmask, maskaddr))
+            return 1;
+        return !comp_with_mask(ipaddr, maskaddr, cidrlen) ||
+               match(mask, address);
+    } else
+        return 1;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

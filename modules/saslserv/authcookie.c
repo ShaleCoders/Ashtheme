@@ -11,9 +11,9 @@
 
 DECLARE_MODULE_V1
 (
-	"saslserv/authcookie", MODULE_UNLOAD_CAPABILITY_NEVER, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "saslserv/authcookie", MODULE_UNLOAD_CAPABILITY_NEVER, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 mowgli_list_t *mechanisms;
@@ -25,53 +25,53 @@ sasl_mechanism_t mech = {"AUTHCOOKIE", &mech_start, &mech_step, &mech_finish};
 
 void _modinit(module_t *m)
 {
-	MODULE_TRY_REQUEST_SYMBOL(m, mechanisms, "saslserv/main", "sasl_mechanisms");
-	mnode = mowgli_node_create();
-	mowgli_node_add(&mech, mnode, mechanisms);
+    MODULE_TRY_REQUEST_SYMBOL(m, mechanisms, "saslserv/main", "sasl_mechanisms");
+    mnode = mowgli_node_create();
+    mowgli_node_add(&mech, mnode, mechanisms);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	mowgli_node_delete(mnode, mechanisms);
+    mowgli_node_delete(mnode, mechanisms);
 }
 
 static int mech_start(sasl_session_t *p, char **out, int *out_len)
 {
-	return ASASL_MORE;
+    return ASASL_MORE;
 }
 
 static int mech_step(sasl_session_t *p, char *message, int len, char **out, int *out_len)
 {
-	char auth[256];
-	char cookie[256];
-	myuser_t *mu;
+    char auth[256];
+    char cookie[256];
+    myuser_t *mu;
 
-	/* Skip the authzid entirely */
-	len -= strlen(message) + 1;
-	if(len <= 0)
-		return ASASL_FAIL;
-	message += strlen(message) + 1;
+    /* Skip the authzid entirely */
+    len -= strlen(message) + 1;
+    if(len <= 0)
+        return ASASL_FAIL;
+    message += strlen(message) + 1;
 
-	/* Copy the authcid */
-	if(strlen(message) > 255)
-		return ASASL_FAIL;
-	len -= strlen(message) + 1;
-	if(len <= 0)
-		return ASASL_FAIL;
-	strcpy(auth, message);
-	message += strlen(message) + 1;
+    /* Copy the authcid */
+    if(strlen(message) > 255)
+        return ASASL_FAIL;
+    len -= strlen(message) + 1;
+    if(len <= 0)
+        return ASASL_FAIL;
+    strcpy(auth, message);
+    message += strlen(message) + 1;
 
-	/* Copy the authcookie */
-	if(strlen(message) > 255)
-		return ASASL_FAIL;
-	mowgli_strlcpy(cookie, message, len + 1);
+    /* Copy the authcookie */
+    if(strlen(message) > 255)
+        return ASASL_FAIL;
+    mowgli_strlcpy(cookie, message, len + 1);
 
-	/* Done dissecting, now check. */
-	if(!(mu = myuser_find_by_nick(auth)))
-		return ASASL_FAIL;
+    /* Done dissecting, now check. */
+    if(!(mu = myuser_find_by_nick(auth)))
+        return ASASL_FAIL;
 
-	p->username = strdup(auth);
-	return authcookie_find(cookie, mu) != NULL ? ASASL_DONE : ASASL_FAIL;
+    p->username = strdup(auth);
+    return authcookie_find(cookie, mu) != NULL ? ASASL_DONE : ASASL_FAIL;
 }
 
 static void mech_finish(sasl_session_t *p)

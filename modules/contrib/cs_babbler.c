@@ -38,57 +38,55 @@
 
 DECLARE_MODULE_V1
 (
-	"contrib/cs_babbler", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"William Pitcock <nenolod -at- nenolod.net>"
+    "contrib/cs_babbler", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "William Pitcock <nenolod -at- nenolod.net>"
 );
 
 static void
 on_channel_message(hook_cmessage_data_t *data)
 {
-	if (data != NULL && data->msg != NULL)
-	{
-		mychan_t *mc = MYCHAN_FROM(data->c);
-		metadata_t *md;
+    if (data != NULL && data->msg != NULL) {
+        mychan_t *mc = MYCHAN_FROM(data->c);
+        metadata_t *md;
 
-		if (!mc)
-			return;
+        if (!mc)
+            return;
 
-		if (!metadata_find(mc, "babbler:enable"))
-			return;
+        if (!metadata_find(mc, "babbler:enable"))
+            return;
 
-		if (!(md = metadata_find(mc, "babbler:nicks")))
-			return;
+        if (!(md = metadata_find(mc, "babbler:nicks")))
+            return;
 
-		if (strstr(md->value, data->u->nick))
-		{
-			char *source = NULL;
-			char *target;
+        if (strstr(md->value, data->u->nick)) {
+            char *source = NULL;
+            char *target;
 
-			if (!(md = metadata_find(mc, "babbler:target")))
-				return;
+            if (!(md = metadata_find(mc, "babbler:target")))
+                return;
 
-			target = md->value;
+            target = md->value;
 
-			if (!(md = metadata_find(mc, "babbler:source")))
-				source = chansvs.nick;
-			else
-				source = md->value;
+            if (!(md = metadata_find(mc, "babbler:source")))
+                source = chansvs.nick;
+            else
+                source = md->value;
 
-			msg(source, data->c->name, "%s: <%s> %s", target, data->u->nick, data->msg);
-		}
-	}
+            msg(source, data->c->name, "%s: <%s> %s", target, data->u->nick, data->msg);
+        }
+    }
 }
 
 void _modinit(module_t *m)
 {
-	hook_add_event("channel_message");
-	hook_add_channel_message(on_channel_message);
+    hook_add_event("channel_message");
+    hook_add_channel_message(on_channel_message);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	hook_del_channel_message(on_channel_message);
+    hook_del_channel_message(on_channel_message);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

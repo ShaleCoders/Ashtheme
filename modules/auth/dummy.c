@@ -10,28 +10,28 @@
 
 DECLARE_MODULE_V1
 (
-	"auth/dummy", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "auth/dummy", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static bool dummy_auth_user(myuser_t *mu, const char *password)
 {
-	return false;
+    return false;
 }
 
 void _modinit(module_t *m)
 {
-	auth_user_custom = &dummy_auth_user;
+    auth_user_custom = &dummy_auth_user;
 
-	auth_module_loaded = true;
+    auth_module_loaded = true;
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	auth_user_custom = NULL;
+    auth_user_custom = NULL;
 
-	auth_module_loaded = false;
+    auth_module_loaded = false;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

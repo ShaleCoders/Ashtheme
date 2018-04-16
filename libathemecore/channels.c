@@ -1,8 +1,8 @@
 /*
- * atheme-services: A collection of minimalist IRC services   
+ * atheme-services: A collection of minimalist IRC services
  * channels.c: Channel event and state tracking
  *
- * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)           
+ * Copyright (c) 2005-2007 Atheme Project (http://www.atheme.org)
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -45,17 +45,16 @@ mowgli_heap_t *chanban_heap;
  */
 void init_channels(void)
 {
-	chan_heap = sharedheap_get(sizeof(channel_t));
-	chanuser_heap = sharedheap_get(sizeof(chanuser_t));
-	chanban_heap = sharedheap_get(sizeof(chanban_t));
+    chan_heap = sharedheap_get(sizeof(channel_t));
+    chanuser_heap = sharedheap_get(sizeof(chanuser_t));
+    chanban_heap = sharedheap_get(sizeof(chanban_t));
 
-	if (chan_heap == NULL || chanuser_heap == NULL || chanban_heap == NULL)
-	{
-		slog(LG_INFO, "init_channels(): block allocator failure.");
-		exit(EXIT_FAILURE);
-	}
+    if (chan_heap == NULL || chanuser_heap == NULL || chanban_heap == NULL) {
+        slog(LG_INFO, "init_channels(): block allocator failure.");
+        exit(EXIT_FAILURE);
+    }
 
-	chanlist = mowgli_patricia_create(irccasecanon);
+    chanlist = mowgli_patricia_create(irccasecanon);
 }
 
 /*
@@ -82,54 +81,51 @@ void init_channels(void)
  */
 channel_t *channel_add(const char *name, time_t ts, server_t *creator)
 {
-	channel_t *c;
-	mychan_t *mc;
+    channel_t *c;
+    mychan_t *mc;
 
-	if (*name != '#')
-	{
-		slog(LG_DEBUG, "channel_add(): got non #channel: %s", name);
-		return NULL;
-	}
+    if (*name != '#') {
+        slog(LG_DEBUG, "channel_add(): got non #channel: %s", name);
+        return NULL;
+    }
 
-	c = channel_find(name);
+    c = channel_find(name);
 
-	if (c)
-	{
-		slog(LG_DEBUG, "channel_add(): channel already exists: %s", name);
-		return c;
-	}
+    if (c) {
+        slog(LG_DEBUG, "channel_add(): channel already exists: %s", name);
+        return c;
+    }
 
-	slog(LG_DEBUG, "channel_add(): %s by %s", name, creator->name);
+    slog(LG_DEBUG, "channel_add(): %s by %s", name, creator->name);
 
-	c = mowgli_heap_alloc(chan_heap);
+    c = mowgli_heap_alloc(chan_heap);
 
-	c->name = sstrdup(name);
-	c->ts = ts;
+    c->name = sstrdup(name);
+    c->ts = ts;
 
-	c->topic = NULL;
-	c->topic_setter = NULL;
+    c->topic = NULL;
+    c->topic_setter = NULL;
 
-	if (ignore_mode_list_size != 0)
-		c->extmodes = scalloc(sizeof(char *), ignore_mode_list_size);
+    if (ignore_mode_list_size != 0)
+        c->extmodes = scalloc(sizeof(char *), ignore_mode_list_size);
 
-	c->bans.head = NULL;
-	c->bans.tail = NULL;
-	c->bans.count = 0;
+    c->bans.head = NULL;
+    c->bans.tail = NULL;
+    c->bans.count = 0;
 
-	if ((mc = mychan_find(c->name)))
-		mc->chan = c;
+    if ((mc = mychan_find(c->name)))
+        mc->chan = c;
 
-	mowgli_patricia_add(chanlist, c->name, c);
+    mowgli_patricia_add(chanlist, c->name, c);
 
-	cnt.chan++;
+    cnt.chan++;
 
-	if (creator != me.me)
-	{
-		hook_call_channel_add(c);
+    if (creator != me.me) {
+        hook_call_channel_add(c);
 
-	}
+    }
 
-	return c;
+    return c;
 }
 
 /*
@@ -150,53 +146,52 @@ channel_t *channel_add(const char *name, time_t ts, server_t *creator)
  */
 void channel_delete(channel_t *c)
 {
-	mychan_t *mc;
-	mowgli_node_t *n, *tn;
-	chanuser_t *cu;
+    mychan_t *mc;
+    mowgli_node_t *n, *tn;
+    chanuser_t *cu;
 
-	return_if_fail(c != NULL);
+    return_if_fail(c != NULL);
 
-	slog(LG_DEBUG, "channel_delete(): %s", c->name);
-	
-	modestack_finalize_channel(c);
+    slog(LG_DEBUG, "channel_delete(): %s", c->name);
 
-	/* If this is called from uplink_close(), there may still be services
-	 * in the channel. Remove them. Calling chanuser_delete() could lead
-	 * to a recursive call, so don't do that.
-	 * -- jilles */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, c->members.head)
-	{
-		cu = n->data;
-		soft_assert(is_internal_client(cu->user) && !me.connected);
-		mowgli_node_delete(&cu->cnode, &c->members);
-		mowgli_node_delete(&cu->unode, &cu->user->channels);
-		mowgli_heap_free(chanuser_heap, cu);
-		cnt.chanuser--;
-	}
-	c->nummembers = 0;
+    modestack_finalize_channel(c);
 
-	hook_call_channel_delete(c);
+    /* If this is called from uplink_close(), there may still be services
+     * in the channel. Remove them. Calling chanuser_delete() could lead
+     * to a recursive call, so don't do that.
+     * -- jilles */
+    MOWGLI_ITER_FOREACH_SAFE(n, tn, c->members.head) {
+        cu = n->data;
+        soft_assert(is_internal_client(cu->user) && !me.connected);
+        mowgli_node_delete(&cu->cnode, &c->members);
+        mowgli_node_delete(&cu->unode, &cu->user->channels);
+        mowgli_heap_free(chanuser_heap, cu);
+        cnt.chanuser--;
+    }
+    c->nummembers = 0;
 
-	mowgli_patricia_delete(chanlist, c->name);
+    hook_call_channel_delete(c);
 
-	if ((mc = mychan_find(c->name)))
-		mc->chan = NULL;
+    mowgli_patricia_delete(chanlist, c->name);
 
-	clear_simple_modes(c);
-	chanban_clear(c);
+    if ((mc = mychan_find(c->name)))
+        mc->chan = NULL;
 
-	if (c->extmodes != NULL)
-		free(c->extmodes);
+    clear_simple_modes(c);
+    chanban_clear(c);
 
-	free(c->name);
-	if (c->topic != NULL)
-		free(c->topic);
-	if (c->topic_setter != NULL)
-		free(c->topic_setter);
+    if (c->extmodes != NULL)
+        free(c->extmodes);
 
-	mowgli_heap_free(chan_heap, c);
+    free(c->name);
+    if (c->topic != NULL)
+        free(c->topic);
+    if (c->topic_setter != NULL)
+        free(c->topic_setter);
 
-	cnt.chan--;
+    mowgli_heap_free(chan_heap, c);
+
+    cnt.chan--;
 }
 
 /*
@@ -218,37 +213,35 @@ void channel_delete(channel_t *c)
  */
 chanban_t *chanban_add(channel_t *chan, const char *mask, int type)
 {
-	chanban_t *c;
+    chanban_t *c;
 
-	return_val_if_fail(chan != NULL, NULL);
-	return_val_if_fail(mask != NULL, NULL);
+    return_val_if_fail(chan != NULL, NULL);
+    return_val_if_fail(mask != NULL, NULL);
 
-	/* this would break protocol and/or cause crashes */
-	if (*mask == '\0' || *mask == ':' || strchr(mask, ' '))
-	{
-		slog(LG_ERROR, "chanban_add(): trying to add invalid +%c %s to channel %s", type, mask, chan->name);
-		return NULL;
-	}
+    /* this would break protocol and/or cause crashes */
+    if (*mask == '\0' || *mask == ':' || strchr(mask, ' ')) {
+        slog(LG_ERROR, "chanban_add(): trying to add invalid +%c %s to channel %s", type, mask, chan->name);
+        return NULL;
+    }
 
-	c = chanban_find(chan, mask, type);
+    c = chanban_find(chan, mask, type);
 
-	if (c)
-	{
-		slog(LG_DEBUG, "chanban_add(): channel ban %s:%s already exists", chan->name, c->mask);
-		return NULL;
-	}
+    if (c) {
+        slog(LG_DEBUG, "chanban_add(): channel ban %s:%s already exists", chan->name, c->mask);
+        return NULL;
+    }
 
-	slog(LG_DEBUG, "chanban_add(): %s +%c %s", chan->name, type, mask);
+    slog(LG_DEBUG, "chanban_add(): %s +%c %s", chan->name, type, mask);
 
-	c = mowgli_heap_alloc(chanban_heap);
+    c = mowgli_heap_alloc(chanban_heap);
 
-	c->chan = chan;
-	c->mask = sstrdup(mask);
-	c->type = type;
+    c->chan = chan;
+    c->mask = sstrdup(mask);
+    c->type = type;
 
-	mowgli_node_add(c, &c->node, &chan->bans);
+    mowgli_node_add(c, &c->node, &chan->bans);
 
-	return c;
+    return c;
 }
 
 /*
@@ -267,12 +260,12 @@ chanban_t *chanban_add(channel_t *chan, const char *mask, int type)
  */
 void chanban_delete(chanban_t * c)
 {
-	return_if_fail(c != NULL);
+    return_if_fail(c != NULL);
 
-	mowgli_node_delete(&c->node, &c->chan->bans);
+    mowgli_node_delete(&c->node, &c->chan->bans);
 
-	free(c->mask);
-	mowgli_heap_free(chanban_heap, c);
+    free(c->mask);
+    mowgli_heap_free(chanban_heap, c);
 }
 
 /*
@@ -294,21 +287,20 @@ void chanban_delete(chanban_t * c)
  */
 chanban_t *chanban_find(channel_t *chan, const char *mask, int type)
 {
-	chanban_t *c;
-	mowgli_node_t *n;
+    chanban_t *c;
+    mowgli_node_t *n;
 
-	return_val_if_fail(chan != NULL, NULL);
-	return_val_if_fail(mask != NULL, NULL);
+    return_val_if_fail(chan != NULL, NULL);
+    return_val_if_fail(mask != NULL, NULL);
 
-	MOWGLI_ITER_FOREACH(n, chan->bans.head)
-	{
-		c = n->data;
+    MOWGLI_ITER_FOREACH(n, chan->bans.head) {
+        c = n->data;
 
-		if (c->type == type && !irccasecmp(c->mask, mask))
-			return c;
-	}
+        if (c->type == type && !irccasecmp(c->mask, mask))
+            return c;
+    }
 
-	return NULL;
+    return NULL;
 }
 
 /*
@@ -344,73 +336,68 @@ chanban_t *chanban_find(channel_t *chan, const char *mask, int type)
  */
 chanuser_t *chanuser_add(channel_t *chan, const char *nick)
 {
-	user_t *u;
-	chanuser_t *cu, *tcu;
-	unsigned int flags = 0;
-	int i = 0;
-	hook_channel_joinpart_t hdata;
+    user_t *u;
+    chanuser_t *cu, *tcu;
+    unsigned int flags = 0;
+    int i = 0;
+    hook_channel_joinpart_t hdata;
 
-	return_val_if_fail(chan != NULL, NULL);
-	return_val_if_fail(chan->name != NULL, NULL);
-	return_val_if_fail(nick != NULL, NULL);
+    return_val_if_fail(chan != NULL, NULL);
+    return_val_if_fail(chan->name != NULL, NULL);
+    return_val_if_fail(nick != NULL, NULL);
 
-	if (*chan->name != '#')
-	{
-		slog(LG_DEBUG, "chanuser_add(): got non #channel: %s", chan->name);
-		return NULL;
-	}
+    if (*chan->name != '#') {
+        slog(LG_DEBUG, "chanuser_add(): got non #channel: %s", chan->name);
+        return NULL;
+    }
 
-	while (*nick != '\0')
-	{
-		for (i = 0; prefix_mode_list[i].mode; i++)
-			if (*nick == prefix_mode_list[i].mode)
-			{
-				flags |= prefix_mode_list[i].value;
-				break;
-			}
-		if (!prefix_mode_list[i].mode)
-			break;
-		nick++;
-	}
+    while (*nick != '\0') {
+        for (i = 0; prefix_mode_list[i].mode; i++)
+            if (*nick == prefix_mode_list[i].mode) {
+                flags |= prefix_mode_list[i].value;
+                break;
+            }
+        if (!prefix_mode_list[i].mode)
+            break;
+        nick++;
+    }
 
-	u = user_find(nick);
-	if (u == NULL)
-	{
-		slog(LG_DEBUG, "chanuser_add(): nonexist user: %s", nick);
-		return NULL;
-	}
+    u = user_find(nick);
+    if (u == NULL) {
+        slog(LG_DEBUG, "chanuser_add(): nonexist user: %s", nick);
+        return NULL;
+    }
 
-	tcu = chanuser_find(chan, u);
-	if (tcu != NULL)
-	{
-		slog(LG_DEBUG, "chanuser_add(): user is already present: %s -> %s", chan->name, u->nick);
+    tcu = chanuser_find(chan, u);
+    if (tcu != NULL) {
+        slog(LG_DEBUG, "chanuser_add(): user is already present: %s -> %s", chan->name, u->nick);
 
-		/* could be an OPME or other desyncher... */
-		tcu->modes |= flags;
+        /* could be an OPME or other desyncher... */
+        tcu->modes |= flags;
 
-		return tcu;
-	}
+        return tcu;
+    }
 
-	slog(LG_DEBUG, "chanuser_add(): %s -> %s", chan->name, u->nick);
+    slog(LG_DEBUG, "chanuser_add(): %s -> %s", chan->name, u->nick);
 
-	cu = mowgli_heap_alloc(chanuser_heap);
+    cu = mowgli_heap_alloc(chanuser_heap);
 
-	cu->chan = chan;
-	cu->user = u;
-	cu->modes = flags;
+    cu->chan = chan;
+    cu->user = u;
+    cu->modes = flags;
 
-	chan->nummembers++;
+    chan->nummembers++;
 
-	mowgli_node_add(cu, &cu->cnode, &chan->members);
-	mowgli_node_add(cu, &cu->unode, &u->channels);
+    mowgli_node_add(cu, &cu->cnode, &chan->members);
+    mowgli_node_add(cu, &cu->unode, &u->channels);
 
-	cnt.chanuser++;
+    cnt.chanuser++;
 
-	hdata.cu = cu;
-	hook_call_channel_join(&hdata);
+    hdata.cu = cu;
+    hook_call_channel_join(&hdata);
 
-	/* Return NULL if a hook function kicked the user out */
-	return hdata.cu;
+    /* Return NULL if a hook function kicked the user out */
+    return hdata.cu;
 }
 
 /*
@@ -435,37 +422,36 @@ chanuser_t *chanuser_add(channel_t *chan, const char *nick)
  */
 void chanuser_delete(channel_t *chan, user_t *user)
 {
-	chanuser_t *cu;
-	hook_channel_joinpart_t hdata;
+    chanuser_t *cu;
+    hook_channel_joinpart_t hdata;
 
-	return_if_fail(chan != NULL);
-	return_if_fail(user != NULL);
+    return_if_fail(chan != NULL);
+    return_if_fail(user != NULL);
 
-	cu = chanuser_find(chan, user);
-	if (cu == NULL)
-		return;
+    cu = chanuser_find(chan, user);
+    if (cu == NULL)
+        return;
 
-	/* this is called BEFORE we remove the user */
-	hdata.cu = cu;
-	hook_call_channel_part(&hdata);
+    /* this is called BEFORE we remove the user */
+    hdata.cu = cu;
+    hook_call_channel_part(&hdata);
 
-	slog(LG_DEBUG, "chanuser_delete(): %s -> %s (%d)", cu->chan->name, cu->user->nick, cu->chan->nummembers - 1);
+    slog(LG_DEBUG, "chanuser_delete(): %s -> %s (%d)", cu->chan->name, cu->user->nick, cu->chan->nummembers - 1);
 
-	mowgli_node_delete(&cu->cnode, &chan->members);
-	mowgli_node_delete(&cu->unode, &user->channels);
+    mowgli_node_delete(&cu->cnode, &chan->members);
+    mowgli_node_delete(&cu->unode, &user->channels);
 
-	mowgli_heap_free(chanuser_heap, cu);
+    mowgli_heap_free(chanuser_heap, cu);
 
-	chan->nummembers--;
-	cnt.chanuser--;
+    chan->nummembers--;
+    cnt.chanuser--;
 
-	if (chan->nummembers == 0 && !(chan->modes & ircd->perm_mode))
-	{
-		/* empty channels die */
-		slog(LG_DEBUG, "chanuser_delete(): `%s' is empty, removing", chan->name);
+    if (chan->nummembers == 0 && !(chan->modes & ircd->perm_mode)) {
+        /* empty channels die */
+        slog(LG_DEBUG, "chanuser_delete(): `%s' is empty, removing", chan->name);
 
-		channel_delete(chan);
-	}
+        channel_delete(chan);
+    }
 }
 
 /*
@@ -486,35 +472,30 @@ void chanuser_delete(channel_t *chan, user_t *user)
  */
 chanuser_t *chanuser_find(channel_t *chan, user_t *user)
 {
-	mowgli_node_t *n;
-	chanuser_t *cu;
+    mowgli_node_t *n;
+    chanuser_t *cu;
 
-	return_val_if_fail(chan != NULL, NULL);
-	return_val_if_fail(user != NULL, NULL);
+    return_val_if_fail(chan != NULL, NULL);
+    return_val_if_fail(user != NULL, NULL);
 
-	/* choose shortest list to search -- jilles */
-	if (MOWGLI_LIST_LENGTH(&user->channels) < MOWGLI_LIST_LENGTH(&chan->members))
-	{
-		MOWGLI_ITER_FOREACH(n, user->channels.head)
-		{
-			cu = (chanuser_t *)n->data;
+    /* choose shortest list to search -- jilles */
+    if (MOWGLI_LIST_LENGTH(&user->channels) < MOWGLI_LIST_LENGTH(&chan->members)) {
+        MOWGLI_ITER_FOREACH(n, user->channels.head) {
+            cu = (chanuser_t *)n->data;
 
-			if (cu->chan == chan)
-				return cu;
-		}
-	}
-	else
-	{
-		MOWGLI_ITER_FOREACH(n, chan->members.head)
-		{
-			cu = (chanuser_t *)n->data;
+            if (cu->chan == chan)
+                return cu;
+        }
+    } else {
+        MOWGLI_ITER_FOREACH(n, chan->members.head) {
+            cu = (chanuser_t *)n->data;
 
-			if (cu->user == user)
-				return cu;
-		}
-	}
+            if (cu->user == user)
+                return cu;
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

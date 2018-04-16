@@ -11,9 +11,9 @@
 
 DECLARE_MODULE_V1
 (
-	"chanserv/set_entrymsg", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Atheme Development Group <http://www.atheme.org>"
+    "chanserv/set_entrymsg", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Atheme Development Group <http://www.atheme.org>"
 );
 
 static void cs_cmd_set_entrymsg(sourceinfo_t *si, int parc, char *parv[]);
@@ -24,63 +24,58 @@ mowgli_patricia_t **cs_set_cmdtree;
 
 void _modinit(module_t *m)
 {
-	MODULE_TRY_REQUEST_SYMBOL(m, cs_set_cmdtree, "chanserv/set_core", "cs_set_cmdtree");
+    MODULE_TRY_REQUEST_SYMBOL(m, cs_set_cmdtree, "chanserv/set_core", "cs_set_cmdtree");
 
-	command_add(&cs_set_entrymsg, *cs_set_cmdtree);
+    command_add(&cs_set_entrymsg, *cs_set_cmdtree);
 }
 
 void _moddeinit(module_unload_intent_t intent)
 {
-	command_delete(&cs_set_entrymsg, *cs_set_cmdtree);
+    command_delete(&cs_set_entrymsg, *cs_set_cmdtree);
 }
 
 static void cs_cmd_set_entrymsg(sourceinfo_t *si, int parc, char *parv[])
 {
-	mychan_t *mc;
+    mychan_t *mc;
 
-	if (!(mc = mychan_find(parv[0])))
-	{
-		command_fail(si, fault_nosuch_target, _("Channel \2%s\2 is not registered."), parv[0]);
-		return;
-	}
+    if (!(mc = mychan_find(parv[0]))) {
+        command_fail(si, fault_nosuch_target, _("Channel \2%s\2 is not registered."), parv[0]);
+        return;
+    }
 
-	if (metadata_find(mc, "private:frozen:freezer"))
-	{
-		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), parv[0]);
-		return;
-	}
+    if (metadata_find(mc, "private:frozen:freezer")) {
+        command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), parv[0]);
+        return;
+    }
 
-	if (!chanacs_source_has_flag(mc, si, CA_SET))
-	{
-		command_fail(si, fault_noprivs, _("You are not authorized to execute this command."));
-		return;
-	}
+    if (!chanacs_source_has_flag(mc, si, CA_SET)) {
+        command_fail(si, fault_noprivs, _("You are not authorized to execute this command."));
+        return;
+    }
 
-	if (!parv[1] || !strcasecmp("OFF", parv[1]) || !strcasecmp("NONE", parv[1]))
-	{
-		/* entrymsg is private because users won't see it if they're AKICKED,
-		 * if the channel is +i, or if the channel is RESTRICTED
-		 */
-		if (metadata_find(mc, "private:entrymsg"))
-		{
-			metadata_delete(mc, "private:entrymsg");
-			logcommand(si, CMDLOG_SET, "SET:ENTRYMSG:NONE: \2%s\2", mc->name);
-			command_success_nodata(si, _("The entry message for \2%s\2 has been cleared."), parv[0]);
-			return;
-		}
+    if (!parv[1] || !strcasecmp("OFF", parv[1]) || !strcasecmp("NONE", parv[1])) {
+        /* entrymsg is private because users won't see it if they're AKICKED,
+         * if the channel is +i, or if the channel is RESTRICTED
+         */
+        if (metadata_find(mc, "private:entrymsg")) {
+            metadata_delete(mc, "private:entrymsg");
+            logcommand(si, CMDLOG_SET, "SET:ENTRYMSG:NONE: \2%s\2", mc->name);
+            command_success_nodata(si, _("The entry message for \2%s\2 has been cleared."), parv[0]);
+            return;
+        }
 
-		command_fail(si, fault_nochange, _("The entry message for \2%s\2 was not set."), parv[0]);
-		return;
-	}
+        command_fail(si, fault_nochange, _("The entry message for \2%s\2 was not set."), parv[0]);
+        return;
+    }
 
-	/* we'll overwrite any existing metadata.
-	 * Why is/was this even private? There are no size/content sanity checks
-	 * and even users with no channel access can see it. --jdhore
-	 */
-	metadata_add(mc, "private:entrymsg", parv[1]);
+    /* we'll overwrite any existing metadata.
+     * Why is/was this even private? There are no size/content sanity checks
+     * and even users with no channel access can see it. --jdhore
+     */
+    metadata_add(mc, "private:entrymsg", parv[1]);
 
-	logcommand(si, CMDLOG_SET, "SET:ENTRYMSG: \2%s\2 \2%s\2", mc->name, parv[1]);
-	command_success_nodata(si, _("The entry message for \2%s\2 has been set to \2%s\2"), parv[0], parv[1]);
+    logcommand(si, CMDLOG_SET, "SET:ENTRYMSG: \2%s\2 \2%s\2", mc->name, parv[1]);
+    command_success_nodata(si, _("The entry message for \2%s\2 has been set to \2%s\2"), parv[0], parv[1]);
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

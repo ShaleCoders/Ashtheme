@@ -49,17 +49,16 @@ static void server_delete_serv(server_t *s);
  */
 void init_servers(void)
 {
-	serv_heap = sharedheap_get(sizeof(server_t));
-	tld_heap = sharedheap_get(sizeof(tld_t));
+    serv_heap = sharedheap_get(sizeof(server_t));
+    tld_heap = sharedheap_get(sizeof(tld_t));
 
-	if (serv_heap == NULL || tld_heap == NULL)
-	{
-		slog(LG_INFO, "init_servers(): block allocator failure.");
-		exit(EXIT_FAILURE);
-	}
+    if (serv_heap == NULL || tld_heap == NULL) {
+        slog(LG_INFO, "init_servers(): block allocator failure.");
+        exit(EXIT_FAILURE);
+    }
 
-	servlist = mowgli_patricia_create(irccasecanon);
-	sidlist = mowgli_patricia_create(noopcanon);
+    servlist = mowgli_patricia_create(irccasecanon);
+    sidlist = mowgli_patricia_create(noopcanon);
 }
 
 /*
@@ -83,73 +82,67 @@ void init_servers(void)
  */
 server_t *server_add(const char *name, unsigned int hops, server_t *uplink, const char *id, const char *desc)
 {
-	server_t *s;
-	const char *tld;
+    server_t *s;
+    const char *tld;
 
-	/* Masked servers must have a SID */
-	return_val_if_fail(name != NULL || id != NULL, NULL);
-	/* Masked servers must be behind something else */
-	return_val_if_fail(name != NULL || uplink != NULL, NULL);
+    /* Masked servers must have a SID */
+    return_val_if_fail(name != NULL || id != NULL, NULL);
+    /* Masked servers must be behind something else */
+    return_val_if_fail(name != NULL || uplink != NULL, NULL);
 
-	if (uplink)
-	{
-		if (name == NULL)
-			slog(LG_NETWORK, "server_add(): %s (%s), masked", uplink->name, id);
-		else if (id != NULL)
-			slog(LG_NETWORK, "server_add(): %s (%s), uplink %s", name, id, uplink->name);
-		else
-			slog(LG_NETWORK, "server_add(): %s, uplink %s", name, uplink->name);
-	}
-	else
-		slog(LG_DEBUG, "server_add(): %s, root", name);
+    if (uplink) {
+        if (name == NULL)
+            slog(LG_NETWORK, "server_add(): %s (%s), masked", uplink->name, id);
+        else if (id != NULL)
+            slog(LG_NETWORK, "server_add(): %s (%s), uplink %s", name, id, uplink->name);
+        else
+            slog(LG_NETWORK, "server_add(): %s, uplink %s", name, uplink->name);
+    } else
+        slog(LG_DEBUG, "server_add(): %s, root", name);
 
-	s = mowgli_heap_alloc(serv_heap);
+    s = mowgli_heap_alloc(serv_heap);
 
-	if (id != NULL)
-	{
-		s->sid = sstrdup(id);
-		mowgli_patricia_add(sidlist, s->sid, s);
-	}
+    if (id != NULL) {
+        s->sid = sstrdup(id);
+        mowgli_patricia_add(sidlist, s->sid, s);
+    }
 
-	/* check to see if it's hidden */
-	if (!strncmp(desc, "(H)", 3))
-	{
-		s->flags |= SF_HIDE;
-		desc += 3;
-		if (*desc == ' ')
-			desc++;
-	}
+    /* check to see if it's hidden */
+    if (!strncmp(desc, "(H)", 3)) {
+        s->flags |= SF_HIDE;
+        desc += 3;
+        if (*desc == ' ')
+            desc++;
+    }
 
-	s->name = sstrdup(name != NULL ? name : uplink->name);
-	s->desc = sstrdup(desc);
-	s->hops = hops;
-	s->connected_since = CURRTIME;
+    s->name = sstrdup(name != NULL ? name : uplink->name);
+    s->desc = sstrdup(desc);
+    s->hops = hops;
+    s->connected_since = CURRTIME;
 
-	if (name != NULL)
-		mowgli_patricia_add(servlist, s->name, s);
-	else
-		s->flags |= SF_MASKED;
+    if (name != NULL)
+        mowgli_patricia_add(servlist, s->name, s);
+    else
+        s->flags |= SF_MASKED;
 
-	if (uplink)
-	{
-		s->uplink = uplink;
-		mowgli_node_add(s, mowgli_node_create(), &uplink->children);
-	}
+    if (uplink) {
+        s->uplink = uplink;
+        mowgli_node_add(s, mowgli_node_create(), &uplink->children);
+    }
 
-	/* tld list for global noticer */
-	tld = strrchr(s->name, '.');
+    /* tld list for global noticer */
+    tld = strrchr(s->name, '.');
 
-	if (tld != NULL)
-	{
-		if (!tld_find(tld))
-			tld_add(tld);
-	}
+    if (tld != NULL) {
+        if (!tld_find(tld))
+            tld_add(tld);
+    }
 
-	cnt.server++;
+    cnt.server++;
 
-	hook_call_server_add(s);
+    hook_call_server_add(s);
 
-	return s;
+    return s;
 }
 
 /*
@@ -168,91 +161,88 @@ server_t *server_add(const char *name, unsigned int hops, server_t *uplink, cons
  */
 void server_delete(const char *name)
 {
-	server_t *s = server_find(name);
+    server_t *s = server_find(name);
 
-	if (!s)
-	{
-		slog(LG_DEBUG, "server_delete(): called for nonexistant server: %s", name);
+    if (!s) {
+        slog(LG_DEBUG, "server_delete(): called for nonexistant server: %s", name);
 
-		return;
-	}
-	server_delete_serv(s);
+        return;
+    }
+    server_delete_serv(s);
 }
 
 static void server_delete_serv(server_t *s)
 {
-	server_t *child;
-	user_t *u;
-	mowgli_node_t *n, *tn;
+    server_t *child;
+    user_t *u;
+    mowgli_node_t *n, *tn;
 
-	if (s == me.me)
-	{
-		/* Deleting this would cause confusion, so let's not do it.
-		 * Some ircds send SQUIT <myname> when atheme is squitted.
-		 * -- jilles
-		 */
-		slog(LG_DEBUG, "server_delete(): tried to delete myself");
-		return;
-	}
+    if (s == me.me) {
+        /* Deleting this would cause confusion, so let's not do it.
+         * Some ircds send SQUIT <myname> when atheme is squitted.
+         * -- jilles
+         */
+        slog(LG_DEBUG, "server_delete(): tried to delete myself");
+        return;
+    }
 
-	if (s->sid)
-		slog(me.connected ? LG_NETWORK : LG_DEBUG, "server_delete(): %s (%s), uplink %s (%d users)",
-				s->name, s->sid,
-				s->uplink != NULL ? s->uplink->name : "<none>",
-				s->users);
-	else
-		slog(me.connected ? LG_NETWORK : LG_DEBUG, "server_delete(): %s, uplink %s (%d users)",
-				s->name, s->uplink != NULL ? s->uplink->name : "<none>",
-				s->users);
+    if (s->sid)
+        slog(me.connected ? LG_NETWORK : LG_DEBUG, "server_delete(): %s (%s), uplink %s (%d users)",
+             s->name, s->sid,
+             s->uplink != NULL ? s->uplink->name : "<none>",
+             s->users);
+    else
+        slog(me.connected ? LG_NETWORK : LG_DEBUG, "server_delete(): %s, uplink %s (%d users)",
+             s->name, s->uplink != NULL ? s->uplink->name : "<none>",
+             s->users);
 
-	hook_call_server_delete((&(hook_server_delete_t){ .s = s }));
+    hook_call_server_delete((&(hook_server_delete_t) {
+        .s = s
+    }));
 
-	/* first go through it's users and kill all of them */
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, s->userlist.head)
-	{
-		u = (user_t *)n->data;
-		/* This user split, allow bursted logins for the account.
-		 * XXX should we do this here?
-		 * -- jilles */
-		if (u->myuser != NULL)
-			u->myuser->flags &= ~MU_NOBURSTLOGIN;
-		user_delete(u, "*.net *.split");
-	}
+    /* first go through it's users and kill all of them */
+    MOWGLI_ITER_FOREACH_SAFE(n, tn, s->userlist.head) {
+        u = (user_t *)n->data;
+        /* This user split, allow bursted logins for the account.
+         * XXX should we do this here?
+         * -- jilles */
+        if (u->myuser != NULL)
+            u->myuser->flags &= ~MU_NOBURSTLOGIN;
+        user_delete(u, "*.net *.split");
+    }
 
-	MOWGLI_ITER_FOREACH_SAFE(n, tn, s->children.head)
-	{
-		child = n->data;
-		server_delete_serv(child);
-	}
+    MOWGLI_ITER_FOREACH_SAFE(n, tn, s->children.head) {
+        child = n->data;
+        server_delete_serv(child);
+    }
 
-	/* now remove the server */
-	if (!(s->flags & SF_MASKED))
-		mowgli_patricia_delete(servlist, s->name);
+    /* now remove the server */
+    if (!(s->flags & SF_MASKED))
+        mowgli_patricia_delete(servlist, s->name);
 
-	if (s->sid)
-		mowgli_patricia_delete(sidlist, s->sid);
+    if (s->sid)
+        mowgli_patricia_delete(sidlist, s->sid);
 
-	if (s->uplink)
-	{
-		n = mowgli_node_find(s, &s->uplink->children);
-		mowgli_node_delete(n, &s->uplink->children);
-		mowgli_node_free(n);
-	}
+    if (s->uplink) {
+        n = mowgli_node_find(s, &s->uplink->children);
+        mowgli_node_delete(n, &s->uplink->children);
+        mowgli_node_free(n);
+    }
 
-	/* If unconnect semantics SQUIT was confirmed, introduce the jupe
-	 * now. This must be after removing the server from the dtrees.
-	 * -- jilles */
-	if (s->flags & SF_JUPE_PENDING)
-		jupe(s->name, "Juped");
+    /* If unconnect semantics SQUIT was confirmed, introduce the jupe
+     * now. This must be after removing the server from the dtrees.
+     * -- jilles */
+    if (s->flags & SF_JUPE_PENDING)
+        jupe(s->name, "Juped");
 
-	free(s->name);
-	free(s->desc);
-	if (s->sid)
-		free(s->sid);
+    free(s->name);
+    free(s->desc);
+    if (s->sid)
+        free(s->sid);
 
-	mowgli_heap_free(serv_heap, s);
+    mowgli_heap_free(serv_heap, s);
 
-	cnt.server--;
+    cnt.server--;
 }
 
 /*
@@ -272,13 +262,13 @@ static void server_delete_serv(server_t *s)
  */
 server_t *server_find(const char *name)
 {
-	server_t *s;
+    server_t *s;
 
-	s = mowgli_patricia_retrieve(sidlist, name);
-	if (s != NULL)
-		return s;
+    s = mowgli_patricia_retrieve(sidlist, name);
+    if (s != NULL)
+        return s;
 
-	return mowgli_patricia_retrieve(servlist, name);
+    return mowgli_patricia_retrieve(servlist, name);
 }
 
 /*
@@ -298,20 +288,20 @@ server_t *server_find(const char *name)
  */
 tld_t *tld_add(const char *name)
 {
-        tld_t *tld;
-        mowgli_node_t *n = mowgli_node_create();
+    tld_t *tld;
+    mowgli_node_t *n = mowgli_node_create();
 
-        slog(LG_DEBUG, "tld_add(): %s", name);
+    slog(LG_DEBUG, "tld_add(): %s", name);
 
-        tld = mowgli_heap_alloc(tld_heap);
+    tld = mowgli_heap_alloc(tld_heap);
 
-        mowgli_node_add(tld, n, &tldlist);
+    mowgli_node_add(tld, n, &tldlist);
 
-        tld->name = sstrdup(name);
+    tld->name = sstrdup(name);
 
-        cnt.tld++;
+    cnt.tld++;
 
-        return tld;
+    return tld;
 }
 
 /*
@@ -330,26 +320,25 @@ tld_t *tld_add(const char *name)
  */
 void tld_delete(const char *name)
 {
-        tld_t *tld = tld_find(name);
-        mowgli_node_t *n;
+    tld_t *tld = tld_find(name);
+    mowgli_node_t *n;
 
-        if (!tld)
-        {
-                slog(LG_DEBUG, "tld_delete(): called for nonexistant tld: %s", name);
+    if (!tld) {
+        slog(LG_DEBUG, "tld_delete(): called for nonexistant tld: %s", name);
 
-                return;
-        }
+        return;
+    }
 
-        slog(LG_DEBUG, "tld_delete(): %s", tld->name);
+    slog(LG_DEBUG, "tld_delete(): %s", tld->name);
 
-        n = mowgli_node_find(tld, &tldlist);
-        mowgli_node_delete(n, &tldlist);
-        mowgli_node_free(n);
+    n = mowgli_node_find(tld, &tldlist);
+    mowgli_node_delete(n, &tldlist);
+    mowgli_node_free(n);
 
-        free(tld->name);
-        mowgli_heap_free(tld_heap, tld);
+    free(tld->name);
+    mowgli_heap_free(tld_heap, tld);
 
-        cnt.tld--;
+    cnt.tld--;
 }
 
 /*
@@ -369,21 +358,20 @@ void tld_delete(const char *name)
  */
 tld_t *tld_find(const char *name)
 {
-        tld_t *tld;
-        mowgli_node_t *n;
+    tld_t *tld;
+    mowgli_node_t *n;
 
-	if (name == NULL)
-		return NULL;
-
-        MOWGLI_ITER_FOREACH(n, tldlist.head)
-        {
-                tld = (tld_t *)n->data;
-
-                if (!strcasecmp(name, tld->name))
-                        return tld;
-        }
-
+    if (name == NULL)
         return NULL;
+
+    MOWGLI_ITER_FOREACH(n, tldlist.head) {
+        tld = (tld_t *)n->data;
+
+        if (!strcasecmp(name, tld->name))
+            return tld;
+    }
+
+    return NULL;
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

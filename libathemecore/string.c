@@ -26,57 +26,54 @@
 /* removes unwanted chars from a line */
 void strip(char *line)
 {
-        char *c;
+    char *c;
 
-        if (line)
-        {
-                if ((c = strchr(line, '\n')))
-                        *c = '\0';
-                if ((c = strchr(line, '\r')))
-                        *c = '\0';
-                if ((c = strchr(line, '\1')))
-                        *c = '\0';
-        }
+    if (line) {
+        if ((c = strchr(line, '\n')))
+            *c = '\0';
+        if ((c = strchr(line, '\r')))
+            *c = '\0';
+        if ((c = strchr(line, '\1')))
+            *c = '\0';
+    }
 }
 
 /* remove mirc colors and controls */
 void strip_ctrl(char *line)
 {
-	char *p, *q;
+    char *p, *q;
 
-	return_if_fail(line != NULL);
+    return_if_fail(line != NULL);
 
-	for (p = line, q = line; *p != '\0'; p++)
-	{
-		switch (*p)
-		{
-			case 3:
-				if (!isdigit((unsigned char)p[1]))
-					break;
-				p++;
-				if (isdigit((unsigned char)p[1]))
-					p++;
-				if (p[1] != ',' || !isdigit((unsigned char)p[2]))
-					break;
-				p += 2;
-				if (isdigit((unsigned char)p[1]))
-					p++;
-				break;
-			case 2:
-			case 4:
-			case 6:
-			case 7:
-			case 22:
-			case 23:
-			case 27:
-			case 29:
-			case 31:
-				break;
-			default:
-				*q++ = *p;
-		}
-	}
-	*q = '\0';
+    for (p = line, q = line; *p != '\0'; p++) {
+        switch (*p) {
+        case 3:
+            if (!isdigit((unsigned char)p[1]))
+                break;
+            p++;
+            if (isdigit((unsigned char)p[1]))
+                p++;
+            if (p[1] != ',' || !isdigit((unsigned char)p[2]))
+                break;
+            p += 2;
+            if (isdigit((unsigned char)p[1]))
+                p++;
+            break;
+        case 2:
+        case 4:
+        case 6:
+        case 7:
+        case 22:
+        case 23:
+        case 27:
+        case 29:
+        case 31:
+            break;
+        default:
+            *q++ = *p;
+        }
+    }
+    *q = '\0';
 }
 
 #ifndef HAVE_STRTOK_R
@@ -114,52 +111,52 @@ void strip_ctrl(char *line)
 char *
 strtok_r(char *s, const char *delim, char **lasts)
 {
-	const char *spanp;
-	int c, sc;
-	char *tok;
+    const char *spanp;
+    int c, sc;
+    char *tok;
 
-	/* s may be NULL */
-	return_val_if_fail(delim != NULL, NULL);
-	return_val_if_fail(lasts != NULL, NULL);
+    /* s may be NULL */
+    return_val_if_fail(delim != NULL, NULL);
+    return_val_if_fail(lasts != NULL, NULL);
 
-	if (s == NULL && (s = *lasts) == NULL)
-		return (NULL);
+    if (s == NULL && (s = *lasts) == NULL)
+        return (NULL);
 
-	/*
-	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
-	 */
+    /*
+     * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+     */
 cont:
-	c = *s++;
-	for (spanp = delim; (sc = *spanp++) != 0;) {
-		if (c == sc)
-			goto cont;
-	}
+    c = *s++;
+    for (spanp = delim; (sc = *spanp++) != 0;) {
+        if (c == sc)
+            goto cont;
+    }
 
-	if (c == 0) {		/* no non-delimiter characters */
-		*lasts = NULL;
-		return (NULL);
-	}
-	tok = s - 1;
+    if (c == 0) {		/* no non-delimiter characters */
+        *lasts = NULL;
+        return (NULL);
+    }
+    tok = s - 1;
 
-	/*
-	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
-	 * Note that delim must have one NUL; we stop if we see that, too.
-	 */
-	for (;;) {
-		c = *s++;
-		spanp = delim;
-		do {
-			if ((sc = *spanp++) == c) {
-				if (c == 0)
-					s = NULL;
-				else
-					s[-1] = 0;
-				*lasts = s;
-				return (tok);
-			}
-		} while (sc != 0);
-	}
-	/* NOTREACHED */
+    /*
+     * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+     * Note that delim must have one NUL; we stop if we see that, too.
+     */
+    for (;;) {
+        c = *s++;
+        spanp = delim;
+        do {
+            if ((sc = *spanp++) == c) {
+                if (c == 0)
+                    s = NULL;
+                else
+                    s[-1] = 0;
+                *lasts = s;
+                return (tok);
+            }
+        } while (sc != 0);
+    }
+    /* NOTREACHED */
 }
 #endif
 
@@ -204,24 +201,24 @@ cont:
 char *
 strcasestr(char *s, const char *find)
 {
-	char c, sc;
-	size_t len;
+    char c, sc;
+    size_t len;
 
-	return_val_if_fail(s != NULL, NULL);
-	return_val_if_fail(find != NULL, NULL);
+    return_val_if_fail(s != NULL, NULL);
+    return_val_if_fail(find != NULL, NULL);
 
-	if ((c = *find++) != 0) {
-		c = tolower((unsigned char)c);
-		len = strlen(find);
-		do {
-			do {
-				if ((sc = *s++) == 0)
-					return (NULL);
-			} while ((char)tolower((unsigned char)sc) != c);
-		} while (strncasecmp(s, find, len) != 0);
-		s--;
-	}
-	return s;
+    if ((c = *find++) != 0) {
+        c = tolower((unsigned char)c);
+        len = strlen(find);
+        do {
+            do {
+                if ((sc = *s++) == 0)
+                    return (NULL);
+            } while ((char)tolower((unsigned char)sc) != c);
+        } while (strncasecmp(s, find, len) != 0);
+        s--;
+    }
+    return s;
 }
 #endif
 

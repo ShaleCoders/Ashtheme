@@ -12,18 +12,18 @@
 
 DECLARE_MODULE_V1
 (
-	"botserv/set", false, _modinit, _moddeinit,
-	PACKAGE_STRING,
-	"Rizon Development Group <http://dev.rizon.net>"
+    "botserv/set", false, _modinit, _moddeinit,
+    PACKAGE_STRING,
+    "Rizon Development Group <http://dev.rizon.net>"
 );
 
 void _modinit(module_t *m)
 {
-	/* Some MODULE_TRY_REQUEST_DEPENDENCY gubbins */
-	MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_core");
-	MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_fantasy");
-	MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_nobot");
-	MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_private");
+    /* Some MODULE_TRY_REQUEST_DEPENDENCY gubbins */
+    MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_core");
+    MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_fantasy");
+    MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_nobot");
+    MODULE_TRY_REQUEST_DEPENDENCY(m, "botserv/set_private");
 
 }
 

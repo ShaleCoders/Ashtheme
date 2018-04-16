@@ -9,7 +9,7 @@
 #include "atheme.h"
 
 DECLARE_MODULE_V1("statserv/server", false, _modinit, _moddeinit,
-        PACKAGE_STRING, "Alexandria Wolcott <alyx@sporksmoo.net>");
+                  PACKAGE_STRING, "Alexandria Wolcott <alyx@sporksmoo.net>");
 
 static void ss_cmd_server(sourceinfo_t * si, int parc, char *parv[]);
 static void ss_cmd_server_info(sourceinfo_t * si, int parc, char *parv[]);
@@ -25,7 +25,7 @@ command_t ss_server_list =
 command_t ss_server_count =
 { "COUNT", N_("Count the amount of servers connected to the network."), AC_NONE, 1, ss_cmd_server_count, {.path = ""} };
 
-command_t ss_server_info = 
+command_t ss_server_info =
 { "INFO", N_("Obtain information about a specified server."), AC_NONE, 2, ss_cmd_server_info, {.path = ""} };
 
 mowgli_patricia_t *ss_server_cmds;
@@ -53,20 +53,18 @@ static void ss_cmd_server(sourceinfo_t * si, int parc, char *parv[])
     command_t *c;
     char *cmd = parv[0];
 
-    if (!cmd)
-    {
+    if (!cmd) {
         command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "SERVER");
-        command_fail(si, fault_needmoreparams, 
-                _("Syntax: SERVER [INFO|LIST|COUNT] [parameters]"));
+        command_fail(si, fault_needmoreparams,
+                     _("Syntax: SERVER [INFO|LIST|COUNT] [parameters]"));
         return;
     }
 
     c = command_find(ss_server_cmds, cmd);
-    if (c == NULL)
-    {
+    if (c == NULL) {
         command_fail(si, fault_badparams,
-                _("Invalid command. Use \2/%s%s help\2 for a command listing."),
-                (ircd->uses_rcommand == false) ? "msg " : "", si->service->disp);
+                     _("Invalid command. Use \2/%s%s help\2 for a command listing."),
+                     (ircd->uses_rcommand == false) ? "msg " : "", si->service->disp);
         return;
     }
 
@@ -78,10 +76,8 @@ static void ss_cmd_server_list(sourceinfo_t * si, int parc, char *parv[])
     server_t *s;
     int i = 0;
     mowgli_patricia_iteration_state_t state;
-    MOWGLI_PATRICIA_FOREACH(s, &state, servlist)
-    {
-        if ((!(s->flags & SF_HIDE)) || (has_priv(si, PRIV_SERVER_AUSPEX)))
-        {
+    MOWGLI_PATRICIA_FOREACH(s, &state, servlist) {
+        if ((!(s->flags & SF_HIDE)) || (has_priv(si, PRIV_SERVER_AUSPEX))) {
             i++;
             command_success_nodata(si, _("%d: %s [%s]"), i, s->name, s->desc);
         }
@@ -94,21 +90,18 @@ static void ss_cmd_server_info(sourceinfo_t * si, int parc, char *parv[])
     server_t *s;
     char *name = parv[0];
 
-    if (!name)
-    {
+    if (!name) {
         command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "SERVER INFO");
         command_fail(si, fault_needmoreparams, _("Syntax: SERVER INFO <server>"));
         return;
     }
 
-    if (!(s = mowgli_patricia_retrieve(servlist, name)))
-    {
+    if (!(s = mowgli_patricia_retrieve(servlist, name))) {
         command_fail(si, fault_nosuch_target, _("Server \2%s\2 does not exist."), name);
         return;
     }
 
-    if ((s->flags & SF_HIDE) && (!(has_priv(si, PRIV_SERVER_AUSPEX))))
-    {
+    if ((s->flags & SF_HIDE) && (!(has_priv(si, PRIV_SERVER_AUSPEX)))) {
         command_fail(si, fault_nosuch_target, _("Server \2%s\2 does not exist."), name);
         return;
     }
@@ -117,8 +110,7 @@ static void ss_cmd_server_info(sourceinfo_t * si, int parc, char *parv[])
     command_success_nodata(si, _("Server description: %s"), s->desc);
     command_success_nodata(si, _("Current users: %u (%u invisible)"), s->users, s->invis);
     command_success_nodata(si, _("Online operators: %u"), s->opers);
-    if (has_priv(si, PRIV_SERVER_AUSPEX))
-    {
+    if (has_priv(si, PRIV_SERVER_AUSPEX)) {
         if (s->uplink != NULL && s->uplink->name != NULL)
             command_success_nodata(si, _("Server uplink: %s"), s->uplink->name);
         command_success_nodata(si, _("Servers linked from %s: %u"), name, (unsigned int)s->children.count);

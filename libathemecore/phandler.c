@@ -68,297 +68,291 @@ void (*quarantine_sts)(user_t *source, user_t *victim, long duration, const char
 
 unsigned int generic_server_login(void)
 {
-	/* Nothing to do here. */
-	return 0;
+    /* Nothing to do here. */
+    return 0;
 }
 
 void generic_introduce_nick(user_t *u)
 {
-	/* Nothing to do here. */
+    /* Nothing to do here. */
 }
 
 void generic_wallops_sts(const char *text)
 {
-	slog(LG_INFO, "Don't know how to send wallops: %s", text);
+    slog(LG_INFO, "Don't know how to send wallops: %s", text);
 }
 
 void generic_join_sts(channel_t *c, user_t *u, bool isnew, char *modes)
 {
-	/* We can't do anything here. Bail. */
+    /* We can't do anything here. Bail. */
 }
 
 void generic_chan_lowerts(channel_t *c, user_t *u)
 {
-	slog(LG_ERROR, "chan_lowerts() called but not supported!");
-	join_sts(c, u, true, channel_modes(c, true));
+    slog(LG_ERROR, "chan_lowerts() called but not supported!");
+    join_sts(c, u, true, channel_modes(c, true));
 }
 
 void generic_kick(user_t *source, channel_t *c, user_t *u, const char *reason)
 {
-	/* We can't do anything here. Bail. */
+    /* We can't do anything here. Bail. */
 }
 
 void generic_msg(const char *from, const char *target, const char *fmt, ...)
 {
-	va_list ap;
-	char buf[BUFSIZE];
+    va_list ap;
+    char buf[BUFSIZE];
 
-	va_start(ap, fmt);
-	if (vsnprintf(buf, sizeof buf, fmt, ap) < 0)
-	{
-		va_end(ap);
-		return;
-	}
-	va_end(ap);
+    va_start(ap, fmt);
+    if (vsnprintf(buf, sizeof buf, fmt, ap) < 0) {
+        va_end(ap);
+        return;
+    }
+    va_end(ap);
 
-	slog(LG_INFO, "Cannot send message to %s (%s): don't know how. Load a protocol module perhaps?", target, buf);
+    slog(LG_INFO, "Cannot send message to %s (%s): don't know how. Load a protocol module perhaps?", target, buf);
 }
 
 void generic_msg_global_sts(user_t *from, const char *mask, const char *text)
 {
-	slog(LG_INFO, "Cannot send global message to %s (%s): don't know how. Load a protocol module perhaps?", mask, text);
+    slog(LG_INFO, "Cannot send global message to %s (%s): don't know how. Load a protocol module perhaps?", mask, text);
 }
 
 void generic_notice_user_sts(user_t *from, user_t *target, const char *text)
 {
-	slog(LG_INFO, "Cannot send notice to %s (%s): don't know how. Load a protocol module perhaps?", target->nick, text);
+    slog(LG_INFO, "Cannot send notice to %s (%s): don't know how. Load a protocol module perhaps?", target->nick, text);
 }
 
 void generic_notice_global_sts(user_t *from, const char *mask, const char *text)
 {
-	slog(LG_INFO, "Cannot send global notice to %s (%s): don't know how. Load a protocol module perhaps?", mask, text);
+    slog(LG_INFO, "Cannot send global notice to %s (%s): don't know how. Load a protocol module perhaps?", mask, text);
 }
 
 void generic_notice_channel_sts(user_t *from, channel_t *target, const char *text)
 {
-	slog(LG_INFO, "Cannot send notice to %s (%s): don't know how. Load a protocol module perhaps?", target->name, text);
+    slog(LG_INFO, "Cannot send notice to %s (%s): don't know how. Load a protocol module perhaps?", target->name, text);
 }
 
-void generic_wallchops(user_t *sender, channel_t *channel, const char *message)	
+void generic_wallchops(user_t *sender, channel_t *channel, const char *message)
 {
-	/* ugly, but always works -- jilles */
-	mowgli_node_t *n;
-	chanuser_t *cu;
+    /* ugly, but always works -- jilles */
+    mowgli_node_t *n;
+    chanuser_t *cu;
 
-	MOWGLI_ITER_FOREACH(n, channel->members.head)
-	{
-		cu = (chanuser_t *)n->data;
-		if (cu->user->server != me.me && cu->modes & CSTATUS_OP)
-			notice(sender->nick, cu->user->nick, "[@%s] %s", channel->name, message);
-	}
+    MOWGLI_ITER_FOREACH(n, channel->members.head) {
+        cu = (chanuser_t *)n->data;
+        if (cu->user->server != me.me && cu->modes & CSTATUS_OP)
+            notice(sender->nick, cu->user->nick, "[@%s] %s", channel->name, message);
+    }
 }
 
 void generic_numeric_sts(server_t *from, int numeric, user_t *target, const char *fmt, ...)
 {
-	va_list va;
-	char buf[BUFSIZE];
+    va_list va;
+    char buf[BUFSIZE];
 
-	va_start(va, fmt);
-	if (vsnprintf(buf, sizeof buf, fmt, va) < 0)
-	{
-		va_end(va);
-		return;
-	}
-	va_end(va);
+    va_start(va, fmt);
+    if (vsnprintf(buf, sizeof buf, fmt, va) < 0) {
+        va_end(va);
+        return;
+    }
+    va_end(va);
 
-	sts(":%s %d %s %s", SERVER_NAME(from), numeric, CLIENT_NAME(target), buf);
+    sts(":%s %d %s %s", SERVER_NAME(from), numeric, CLIENT_NAME(target), buf);
 }
 
 void generic_kill_id_sts(user_t *killer, const char *id, const char *reason)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_part_sts(channel_t *c, user_t *u)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_kline_sts(const char *server, const char *user, const char *host, long duration, const char *reason)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_unkline_sts(const char *server, const char *user, const char *host)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_xline_sts(const char *server, const char *realname, long duration, const char *reason)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_unxline_sts(const char *server, const char *realname)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_qline_sts(const char *server, const char *mask, long duration, const char *reason)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_unqline_sts(const char *server, const char *mask)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_topic_sts(channel_t *c, user_t *source, const char *setter, time_t ts, time_t prevts, const char *topic)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_mode_sts(char *sender, channel_t *target, char *modes)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_ping_sts(void)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_quit_sts(user_t *u, const char *reason)
 {
-	/* cant do anything here. bail. */
+    /* cant do anything here. bail. */
 }
 
 void generic_on_login(user_t *u, myuser_t *account, const char *wantedhost)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 bool generic_on_logout(user_t *u, const char *account)
 {
-	/* nothing to do here. */
-	return false;
+    /* nothing to do here. */
+    return false;
 }
 
 void generic_jupe(const char *server, const char *reason)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 void generic_sethost_sts(user_t *source, user_t *target, const char *host)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 void generic_fnc_sts(user_t *source, user_t *u, const char *newnick, int type)
 {
-	if (type == FNC_FORCE) /* XXX this does not work properly */
-		kill_id_sts(source, CLIENT_NAME(u), "Nickname enforcement");
+    if (type == FNC_FORCE) /* XXX this does not work properly */
+        kill_id_sts(source, CLIENT_NAME(u), "Nickname enforcement");
 }
 
 void generic_holdnick_sts(user_t *source, int duration, const char *nick, myuser_t *account)
 {
-	/* nothing to do here. */	
+    /* nothing to do here. */
 }
 
 void generic_invite_sts(user_t *source, user_t *target, channel_t *channel)
 {
-	/* nothing to do here. */	
+    /* nothing to do here. */
 }
 
 void generic_svslogin_sts(char *target, char *nick, char *user, char *host, myuser_t *account)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 void generic_sasl_sts(char *target, char mode, char *data)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 mowgli_node_t *generic_next_matching_ban(channel_t *c, user_t *u, int type, mowgli_node_t *first)
 {
-	chanban_t *cb;
-	mowgli_node_t *n;
-	char hostbuf[NICKLEN+USERLEN+HOSTLEN];
-	char cloakbuf[NICKLEN+USERLEN+HOSTLEN];
-	char realbuf[NICKLEN+USERLEN+HOSTLEN];
-	char ipbuf[NICKLEN+USERLEN+HOSTLEN];
+    chanban_t *cb;
+    mowgli_node_t *n;
+    char hostbuf[NICKLEN+USERLEN+HOSTLEN];
+    char cloakbuf[NICKLEN+USERLEN+HOSTLEN];
+    char realbuf[NICKLEN+USERLEN+HOSTLEN];
+    char ipbuf[NICKLEN+USERLEN+HOSTLEN];
 
-	snprintf(hostbuf, sizeof hostbuf, "%s!%s@%s", u->nick, u->user, u->vhost);
-	snprintf(cloakbuf, sizeof cloakbuf, "%s!%s@%s", u->nick, u->user, u->chost);
-	snprintf(realbuf, sizeof realbuf, "%s!%s@%s", u->nick, u->user, u->host);
-	/* will be nick!user@ if ip unknown, doesn't matter */
-	snprintf(ipbuf, sizeof ipbuf, "%s!%s@%s", u->nick, u->user, u->ip);
-	MOWGLI_ITER_FOREACH(n, first)
-	{
-		cb = n->data;
+    snprintf(hostbuf, sizeof hostbuf, "%s!%s@%s", u->nick, u->user, u->vhost);
+    snprintf(cloakbuf, sizeof cloakbuf, "%s!%s@%s", u->nick, u->user, u->chost);
+    snprintf(realbuf, sizeof realbuf, "%s!%s@%s", u->nick, u->user, u->host);
+    /* will be nick!user@ if ip unknown, doesn't matter */
+    snprintf(ipbuf, sizeof ipbuf, "%s!%s@%s", u->nick, u->user, u->ip);
+    MOWGLI_ITER_FOREACH(n, first) {
+        cb = n->data;
 
-		if (cb->type == type &&
-				(!match(cb->mask, hostbuf) || !match(cb->mask, cloakbuf) || !match(cb->mask, realbuf) || !match(cb->mask, ipbuf) || (ircd->flags & IRCD_CIDR_BANS && !match_cidr(cb->mask, ipbuf))))
-			return n;
-	}
-	return NULL;
+        if (cb->type == type &&
+            (!match(cb->mask, hostbuf) || !match(cb->mask, cloakbuf) || !match(cb->mask, realbuf) || !match(cb->mask, ipbuf) || (ircd->flags & IRCD_CIDR_BANS && !match_cidr(cb->mask, ipbuf))))
+            return n;
+    }
+    return NULL;
 }
 
 mowgli_node_t *generic_next_matching_host_chanacs(mychan_t *mc, user_t *u, mowgli_node_t *first)
 {
-	chanacs_t *ca;
-	mowgli_node_t *n;
-	char hostbuf[NICKLEN+USERLEN+HOSTLEN];
-	char hostbuf2[NICKLEN+USERLEN+HOSTLEN];
-	char ipbuf[NICKLEN+USERLEN+HOSTLEN];
+    chanacs_t *ca;
+    mowgli_node_t *n;
+    char hostbuf[NICKLEN+USERLEN+HOSTLEN];
+    char hostbuf2[NICKLEN+USERLEN+HOSTLEN];
+    char ipbuf[NICKLEN+USERLEN+HOSTLEN];
 
-	snprintf(hostbuf, sizeof hostbuf, "%s!%s@%s", u->nick, u->user, u->vhost);
-	snprintf(hostbuf2, sizeof hostbuf2, "%s!%s@%s", u->nick, u->user, u->chost);
-	/* will be nick!user@ if ip unknown, doesn't matter */
-	snprintf(ipbuf, sizeof ipbuf, "%s!%s@%s", u->nick, u->user, u->ip);
+    snprintf(hostbuf, sizeof hostbuf, "%s!%s@%s", u->nick, u->user, u->vhost);
+    snprintf(hostbuf2, sizeof hostbuf2, "%s!%s@%s", u->nick, u->user, u->chost);
+    /* will be nick!user@ if ip unknown, doesn't matter */
+    snprintf(ipbuf, sizeof ipbuf, "%s!%s@%s", u->nick, u->user, u->ip);
 
-	MOWGLI_ITER_FOREACH(n, first)
-	{
-		ca = n->data;
+    MOWGLI_ITER_FOREACH(n, first) {
+        ca = n->data;
 
-		if (ca->entity != NULL)
-		       continue;
-		if (!match(ca->host, hostbuf) || !match(ca->host, hostbuf2) || !match(ca->host, ipbuf) || (ircd->flags & IRCD_CIDR_BANS && !match_cidr(ca->host, ipbuf)))
-			return n;
-	}
-	return NULL;
+        if (ca->entity != NULL)
+            continue;
+        if (!match(ca->host, hostbuf) || !match(ca->host, hostbuf2) || !match(ca->host, ipbuf) || (ircd->flags & IRCD_CIDR_BANS && !match_cidr(ca->host, ipbuf)))
+            return n;
+    }
+    return NULL;
 }
 
 bool generic_is_valid_nick(const char *nick)
 {
-	const char *iter = nick;
+    const char *iter = nick;
 
-	/* nicknames may not normally begin with a number, due to UID collision */
-	if (IsDigit(*iter))
-		return false;
-	if (*iter == '-')
-		return false;
+    /* nicknames may not normally begin with a number, due to UID collision */
+    if (IsDigit(*iter))
+        return false;
+    if (*iter == '-')
+        return false;
 
-	for (; *iter != '\0'; iter++)
-	{
-		if (!IsNickChar(*iter))
-			return false;
-	}
+    for (; *iter != '\0'; iter++) {
+        if (!IsNickChar(*iter))
+            return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool generic_is_valid_host(const char *host)
 {
-	/* don't know what to do here */
-	return true;
+    /* don't know what to do here */
+    return true;
 }
 
 void generic_mlock_sts(channel_t *c)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 void generic_topiclock_sts(channel_t *c)
 {
-	/* nothing to do here. */
+    /* nothing to do here. */
 }
 
 void generic_quarantine_sts(user_t *source, user_t *victim, long duration, const char *reason)
 {
-	/* nothing to do here */
+    /* nothing to do here */
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs

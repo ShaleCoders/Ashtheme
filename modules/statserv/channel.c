@@ -9,7 +9,7 @@
 #include "atheme.h"
 
 DECLARE_MODULE_V1("statserv/channel", false, _modinit, _moddeinit,
-        PACKAGE_STRING, "Alexandria Wolcott <alyx@sporksmoo.net>");
+                  PACKAGE_STRING, "Alexandria Wolcott <alyx@sporksmoo.net>");
 
 static void ss_cmd_channel(sourceinfo_t * si, int parc, char *parv[]);
 static void ss_cmd_channel_topic(sourceinfo_t * si, int parc, char *parv[]);
@@ -51,20 +51,18 @@ static void ss_cmd_channel(sourceinfo_t * si, int parc, char *parv[])
     command_t *c;
     char *cmd = parv[0];
 
-    if (!cmd)
-    {
+    if (!cmd) {
         command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "CHANNEL");
         command_fail(si, fault_needmoreparams,
-                _("Syntax: CHANNEL [TOPIC|COUNT] [parameters]"));
+                     _("Syntax: CHANNEL [TOPIC|COUNT] [parameters]"));
         return;
     }
 
     c = command_find(ss_channel_cmds, cmd);
-    if (c == NULL)
-    {
+    if (c == NULL) {
         command_fail(si, fault_badparams,
-                _("Invalid command. Use \2/%s%s help\2 for a command listing."),
-                (ircd->uses_rcommand == false) ? "msg " : "", si->service->disp);
+                     _("Invalid command. Use \2/%s%s help\2 for a command listing."),
+                     (ircd->uses_rcommand == false) ? "msg " : "", si->service->disp);
         return;
     }
 
@@ -76,30 +74,27 @@ static void ss_cmd_channel_topic(sourceinfo_t * si, int parc, char *parv[])
     char *chan = parv[0];
     channel_t *c;
 
-    if (!chan)
-    {
+    if (!chan) {
         command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "CHANNEL TOPIC");
         command_fail(si, fault_needmoreparams, _("Syntax: CHANNEL TOPIC <#channel>"));
         return;
     }
 
-    if (!(c = channel_find(chan)))
-    {
+    if (!(c = channel_find(chan))) {
         command_fail(si, fault_nosuch_target, _("The channel \2%s\2 does not exist."),
-                chan);
+                     chan);
         return;
     }
 
-    if (c->modes & CMODE_SEC)
-    {
+    if (c->modes & CMODE_SEC) {
         command_fail(si, fault_noprivs,
-                _("You are not authorised to perform this action."));
+                     _("You are not authorised to perform this action."));
         return;
     }
 
     if (c->topic)
         command_success_nodata(si, _("Topic for %s set by %s: %s"), c->name,
-                c->topic_setter, c->topic);
+                               c->topic_setter, c->topic);
     else
         command_success_nodata(si, _("No topic set for %s"), c->name);
 }

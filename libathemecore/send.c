@@ -28,33 +28,33 @@
 /* send a line to the server, append the \r\n */
 int sts(const char *fmt, ...)
 {
-	va_list ap;
-	char buf[513];
-	int len;
+    va_list ap;
+    char buf[513];
+    int len;
 
-	if (!me.connected)
-		return 0;
+    if (!me.connected)
+        return 0;
 
-	return_val_if_fail(curr_uplink != NULL, 0);
-	return_val_if_fail(curr_uplink->conn != NULL, 0);
-	return_val_if_fail(fmt != NULL, 0);
+    return_val_if_fail(curr_uplink != NULL, 0);
+    return_val_if_fail(curr_uplink->conn != NULL, 0);
+    return_val_if_fail(fmt != NULL, 0);
 
-	va_start(ap, fmt);
-	vsnprintf(buf, 511, fmt, ap); /* leave two bytes for \r\n */
-	va_end(ap);
+    va_start(ap, fmt);
+    vsnprintf(buf, 511, fmt, ap); /* leave two bytes for \r\n */
+    va_end(ap);
 
-	len = strlen(buf);
-	buf[len++] = '\r';
-	buf[len++] = '\n';
-	buf[len] = '\0';
+    len = strlen(buf);
+    buf[len++] = '\r';
+    buf[len++] = '\n';
+    buf[len] = '\0';
 
-	cnt.bout += len;
+    cnt.bout += len;
 
-	sendq_add(curr_uplink->conn, buf, len);
+    sendq_add(curr_uplink->conn, buf, len);
 
-	slog(LG_RAWDATA, "<- %.*s", len, buf);
+    slog(LG_RAWDATA, "<- %.*s", len, buf);
 
-	return 0;
+    return 0;
 }
 
 /*
@@ -71,12 +71,11 @@ int sts(const char *fmt, ...)
  */
 void io_loop(void)
 {
-	while (!(runflags & (RF_SHUTDOWN | RF_RESTART)))
-	{
-		CURRTIME = mowgli_eventloop_get_time(base_eventloop);
-		mowgli_eventloop_run_once(base_eventloop);
-		check_signals();
-	}
+    while (!(runflags & (RF_SHUTDOWN | RF_RESTART))) {
+        CURRTIME = mowgli_eventloop_get_time(base_eventloop);
+        mowgli_eventloop_run_once(base_eventloop);
+        check_signals();
+    }
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs
