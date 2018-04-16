@@ -60,5 +60,6 @@ extra.mk
 tags
 .deps
 aclocal.m4
+libmowgli-2/src/libmowgli/platform/autoconf.h
 
 *.dylib
