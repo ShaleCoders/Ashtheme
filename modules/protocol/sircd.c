@@ -62,6 +62,7 @@ struct cmode_ sircd_mode_list[] = {
     { 'M', CMODE_IMMUNE },
     { 'C', CMODE_NOCTCP },
     { 'A', CMODE_ADMINONLY },
+    { 'B', CMODE_HIDEBANS },
     { 'O', CMODE_OPERONLY },
     { 'S', CMODE_SSLONLY },
     { 'D', CMODE_NOACTIONS },
