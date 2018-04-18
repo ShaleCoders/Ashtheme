@@ -1,4 +1,4 @@
-/* This is an example configuration for Services.
+l/* This is an example configuration for Services.
  *
  * All statements end in semi-colons (';').
  * Shell style, C style, and C++ style comments may be used.
@@ -297,6 +297,12 @@ loadmodule "modules/nickserv/vhost";
  * KICK/KICKBAN commands                        modules/chanserv/kick
  * LIST command                                 modules/chanserv/list
  * MARK command                                 modules/chanserv/mark
+ * MASS functions                               modules/chanserv/mass
+ * MASS HalfOp                                  modules/chanserv/mass_halfop
+ * MASS Op                                      modules/chanserv/mass_op
+ * MASS Owner                                   modules/chanserv/mass_owner
+ * MASS Protect                                 modules/chanserv/mass_protect
+ * MASS Voice                                   modules/chanserv/mass_voice
  * Moderated channel registrations              modules/chanserv/moderate
  * OP/DEOP commands                             modules/chanserv/op
  * OWNER/DEOWNER commands                       modules/chanserv/owner
@@ -365,6 +371,12 @@ loadmodule "modules/chanserv/invite";
 loadmodule "modules/chanserv/kick";
 loadmodule "modules/chanserv/list";
 loadmodule "modules/chanserv/mark";
+#loadmodule "modules/chanserv/mass";
+#loadmodule "modules/chanserv/mass_halfop";
+#loadmodule "modules/chanserv/mass_op";
+#loadmodule "modules/chanserv/mass_owner";
+#loadmodule "modules/chanserv/mass_protect";
+#loadmodule "modules/chanserv/mass_voice";
 #loadmodule "modules/chanserv/moderate";
 loadmodule "modules/chanserv/op";
 #loadmodule "modules/chanserv/owner";
