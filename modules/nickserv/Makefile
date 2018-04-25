@@ -17,6 +17,7 @@ BASE_SRCS =			\
 	drop.c	\
 	enforce.c	\
 	freeze.c	\
+        fdropmail.c     \
 	ghost.c	\
 	group.c	\
 	help.c	\
