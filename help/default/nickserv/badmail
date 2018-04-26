@@ -3,19 +3,19 @@ Help for BADMAIL:
 BADMAIL allows you to maintain a list of email addresses that are
 not allowed to be used to register accounts.
 
-These email addresses are saved to the Atheme database and are kept
+These email addresses are saved to the Xtheme database and are kept
 between services restarts.
 
-In BADMAIL ADD, you are able to use glob matching to disallow email
-addresses that match a pattern.
+In BADMAIL ADD, you are able to use glob matching to disallow or AKILL
+email addresses that match a pattern.
 
-Syntax: BADMAIL ADD <email> [reason]
+Syntax: BADMAIL ADD <email> <action> [reason]
 
 Examples:
-    /msg &nick& BADMAIL ADD jdhore1@gmail.com bar reason
-    /msg &nick& BADMAIL ADD *@aol.com bar reason
-    /msg &nick& BADMAIL ADD *@*.tk foo reason
-    /msg &nick& BADMAIL ADD some-spambot-pattern-*@gmail.com
+    /msg nickserv BADMAIL ADD jdhore1@gmail.com REJECT reason
+    /msg nickserv BADMAIL ADD *@aol.com AKILL reason
+    /msg nickserv BADMAIL ADD *@*.tk REJECT reason
+    /msg nickserv BADMAIL ADD spambot-pattern-*@gmail.com AKILL reason
 
 BADMAIL DEL allows you to remove entries from the list of currently
 banned email addresses.
@@ -23,12 +23,23 @@ banned email addresses.
 Syntax: BADMAIL DEL <email>
 
 Examples:
-    /msg &nick& BADMAIL DEL foo@bar.com
-    /msg &nick& BADMAIL DEL *@aol.com
+    /msg nickserv BADMAIL DEL foo@bar.com
+    /msg nickserv BADMAIL DEL *@aol.com
 
 BADMAIL LIST allows you to list the currently banned email addresses.
+You may specify a pattern to view a filtered list.
 
-Syntax: BADMAIL LIST
+Syntax: BADMAIL LIST [pattern]
 
 Examples:
-    /msg &nick& BADMAIL LIST
+    /msg nickserv BADMAIL LIST
+    /msg nickserv BADMAIL LIST *@gmail.com
+
+BADMAIL TEST allows you to quickly look up which patterns (if any)
+prevent the use of an email address. This is particularly useful
+if you make frequent use of glob patterns.
+
+Syntax: BADMAIL TEST <email>
+
+Examples:
+    /msg nickserv BADMAIL TEST harmless-user@example.comL 
